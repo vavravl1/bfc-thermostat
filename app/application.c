@@ -1,6 +1,10 @@
 #include <application.h>
 #include <radio.h>
 
+#define MODULE_POWER 1
+#include "vv_display.h"
+
+
 #define BATTERY_UPDATE_INTERVAL (60 * 60 * 1000)
 
 #define TEMPERATURE_TAG_PUB_NO_CHANGE_INTEVAL (5 * 60 * 1000)
@@ -136,7 +140,6 @@ static void _radio_pub_state(uint8_t type, bool state);
 void battery_event_handler(bc_module_battery_event_t event, void *event_param);
 #endif //MODULE_POWER
 
-static void lcd_page_render();
 static void temperature_tag_init(bc_i2c_channel_t i2c_channel, bc_tag_temperature_i2c_address_t i2c_address, temperature_tag_t *tag);
 static void humidity_tag_init(bc_tag_humidity_revision_t revision, bc_i2c_channel_t i2c_channel, humidity_tag_t *tag);
 static void lux_meter_tag_init(bc_i2c_channel_t i2c_channel, bc_tag_lux_meter_i2c_address_t i2c_address, lux_meter_tag_t *tag);
@@ -277,6 +280,8 @@ void application_init(void)
         bc_module_battery_set_event_handler(battery_event_handler, NULL);
         bc_module_battery_set_update_interval(BATTERY_UPDATE_INTERVAL);
 #endif
+
+    vv_display_init();
 }
 
 void application_task(void)
@@ -288,7 +293,7 @@ void application_task(void)
 
     if (!lcd.mqtt)
     {
-        lcd_page_render();
+        vv_lcd_page_render();
     }
     else
     {
@@ -296,59 +301,6 @@ void application_task(void)
     }
 
     bc_module_lcd_update();
-}
-
-static void lcd_page_render()
-{
-
-    int w;
-    char str[32];
-
-    bc_module_core_pll_enable();
-
-    bc_module_lcd_clear();
-
-    if (page_index < 3)
-    {
-        bc_module_lcd_set_font(&bc_font_ubuntu_15);
-        bc_module_lcd_draw_string(10, 5, pages[page_index].name0, true);
-
-        bc_module_lcd_set_font(&bc_font_ubuntu_28);
-        snprintf(str, sizeof(str), pages[page_index].format0, *pages[page_index].value0);
-        w = bc_module_lcd_draw_string(25, 25, str, true);
-        bc_module_lcd_set_font(&bc_font_ubuntu_15);
-        w = bc_module_lcd_draw_string(w, 35, pages[page_index].unit0, true);
-
-        bc_module_lcd_set_font(&bc_font_ubuntu_15);
-        bc_module_lcd_draw_string(10, 55, pages[page_index].name1, true);
-
-        bc_module_lcd_set_font(&bc_font_ubuntu_28);
-        snprintf(str, sizeof(str), pages[page_index].format1, *pages[page_index].value1);
-        w = bc_module_lcd_draw_string(25, 75, str, true);
-        bc_module_lcd_set_font(&bc_font_ubuntu_15);
-        bc_module_lcd_draw_string(w, 85, pages[page_index].unit1, true);
-    }
-#if MODULE_POWER
-    else
-    {
-        bc_module_lcd_set_font(&bc_font_ubuntu_13);
-
-        for (int i = 0; i < 5; i++)
-        {
-            bc_module_lcd_draw_string(5, 5 + (i * 15), menu_items[i], i != menu_item);
-        }
-
-        bc_module_lcd_set_font(&bc_font_ubuntu_13);
-        bc_module_lcd_draw_string(5, 115, "Down", true);
-        bc_module_lcd_draw_string(90, 115, "Enter", true);
-    }
-#endif
-
-    snprintf(str, sizeof(str), "%d/%d", page_index + 1, MAX_PAGE_INDEX + 1);
-    bc_module_lcd_set_font(&bc_font_ubuntu_13);
-    bc_module_lcd_draw_string(55, 115, str, true);
-
-    bc_module_core_pll_disable();
 }
 
 static void temperature_tag_init(bc_i2c_channel_t i2c_channel, bc_tag_temperature_i2c_address_t i2c_address, temperature_tag_t *tag)
@@ -436,6 +388,8 @@ void button_event_handler(bc_button_t *self, bc_button_event_t event, void *even
         bc_radio_pub_push_button(&event_count);
 
         event_count++;
+
+        bc_module_relay_set_state(&relay_0_0, event_count % 2 == 0);	
     }
     else if (event == BC_BUTTON_EVENT_HOLD)
     {
@@ -456,74 +410,16 @@ void lcd_button_event_handler(bc_button_t *self, bc_button_event_t event, void *
         return;
     }
 
-    if (self->_channel.virtual_channel == BC_MODULE_LCD_BUTTON_LEFT)
-    {
-        if ((page_index != 3))
-        {
-            // Key prew page
-            page_index--;
-            if (page_index < 0)
-            {
-                page_index = MAX_PAGE_INDEX;
-                menu_item = 0;
-            }
-        }
-        else
-        {
-            // Key menu down
-            menu_item++;
-            if (menu_item == 5)
-            {
-                menu_item = 0;
-            }
-        }
-
-        static uint16_t left_event_count = 0;
-        _radio_pub_u16(RADIO_LCD_BUTTON_LEFT, left_event_count++);
-    }
-    else
-    {
-        if ((page_index != 3) || (menu_item == 0))
-        {
-            // Key next page
-            page_index++;
-            if (page_index > MAX_PAGE_INDEX)
-            {
-                page_index = 0;
-            }
-            if (page_index == 3)
-            {
-                menu_item = 0;
-            }
-        }
-#if MODULE_POWER
-        else if (page_index == 3)
-        {
-            // Key enter
-            if (menu_item == 1)
-            {
-                bc_led_strip_effect_test(&led_strip.self);
-            }
-            else if (menu_item == 2)
-            {
-                bc_led_strip_effect_rainbow(&led_strip.self, 50);
-            }
-            else if (menu_item == 3)
-            {
-                bc_led_strip_effect_rainbow_cycle(&led_strip.self, 50);
-            }
-            else if (menu_item == 4)
-            {
-                bc_led_strip_effect_theater_chase_rainbow(&led_strip.self, 50);
-            }
-            led_strip.show = LED_STRIP_SHOW_EFFECT;
-        }
-#endif
-
-        static uint16_t right_event_count = 0;
-        _radio_pub_u16(RADIO_LCD_BUTTON_RIGHT, right_event_count++);
+    if (self->_channel.virtual_channel == BC_MODULE_LCD_BUTTON_LEFT) {
+	vv_lcd_prev_page();
+    } else if(self->_channel.virtual_channel == BC_MODULE_LCD_BUTTON_RIGHT) {
+	vv_lcd_next_page();	
+    } else {
+	return;
     }
 
+//        static uint16_t left_event_count = 0;
+//        _radio_pub_u16(RADIO_LCD_BUTTON_LEFT, left_event_count++);
     bc_scheduler_plan_now(0);
 }
 
