@@ -55,5 +55,5 @@ void _vv_radio_listen_task() {
 
 void _vv_radio_sleep_task() {
     bc_radio_sleep();    
-    bc_scheduler_plan_relative(_vv_radio_listen_task_id, 5000);    
+    bc_scheduler_plan_relative(_vv_radio_listen_task_id, 10000);    
 }

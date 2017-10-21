@@ -9,24 +9,19 @@
 
 #define TEMPERATURE_TAG_PUB_NO_CHANGE_INTEVAL (5 * 60 * 1000)
 #define TEMPERATURE_TAG_PUB_VALUE_CHANGE 0.1f
-#define TEMPERATURE_TAG_UPDATE_INTERVAL (1 * 1000)
+#define TEMPERATURE_TAG_UPDATE_INTERVAL (30 * 1000)
 
 #define HUMIDITY_TAG_PUB_NO_CHANGE_INTEVAL (5 * 60 * 1000)
 #define HUMIDITY_TAG_PUB_VALUE_CHANGE 1.0f
-#define HUMIDITY_TAG_UPDATE_INTERVAL (1 * 1000)
+#define HUMIDITY_TAG_UPDATE_INTERVAL (1 * 60 * 1000)
 
 #define LUX_METER_TAG_PUB_NO_CHANGE_INTEVAL (5 * 60 * 1000)
 #define LUX_METER_TAG_PUB_VALUE_CHANGE 5.0f
-#define LUX_METER_TAG_UPDATE_INTERVAL (1 * 1000)
+#define LUX_METER_TAG_UPDATE_INTERVAL (1 * 60 * 1000)
 
 #define BAROMETER_TAG_PUB_NO_CHANGE_INTEVAL (5 * 60 * 1000)
 #define BAROMETER_TAG_PUB_VALUE_CHANGE 10.0f
-#define BAROMETER_TAG_UPDATE_INTERVAL (1 * 1000)
-
-#define CO2_PUB_NO_CHANGE_INTERVAL (5 * 60 * 1000)
-#define CO2_PUB_VALUE_CHANGE 50.0f
-
-#define CO2_UPDATE_INTERVAL (15 * 1000)
+#define BAROMETER_TAG_UPDATE_INTERVAL (1 * 60 * 1000)
 
 bc_led_t led;
 bool led_state = false;
@@ -51,8 +46,6 @@ void temperature_tag_event_handler(bc_tag_temperature_t *self, bc_tag_temperatur
 void humidity_tag_event_handler(bc_tag_humidity_t *self, bc_tag_humidity_event_t event, void *event_param);
 void lux_meter_event_handler(bc_tag_lux_meter_t *self, bc_tag_lux_meter_event_t event, void *event_param);
 void barometer_tag_event_handler(bc_tag_barometer_t *self, bc_tag_barometer_event_t event, void *event_param);
-void flood_detector_event_handler(bc_flood_detector_t *self, bc_flood_detector_event_t event, void *event_param);
-void pir_event_handler(bc_module_pir_t *self, bc_module_pir_event_t event, void*event_param);
 void encoder_event_handler(bc_module_encoder_event_t event, void *event_param);
 static void _radio_pub_u16(uint8_t type, uint16_t value);
 
@@ -135,28 +128,7 @@ void application_init(void)
     bc_button_set_event_handler(&lcd_right, lcd_button_event_handler, NULL);
 
     //----------------------------
-
-    static bc_flood_detector_t flood_detector_a;
-    static event_param_t flood_detector_a_event_param = {.number = 'a', .value = -1};
-    bc_flood_detector_init(&flood_detector_a, BC_FLOOD_DETECTOR_TYPE_LD_81_SENSOR_MODULE_CHANNEL_A);
-    bc_flood_detector_set_event_handler(&flood_detector_a, flood_detector_event_handler, &flood_detector_a_event_param);
-    bc_flood_detector_set_update_interval(&flood_detector_a, 1000);
-
-    static bc_flood_detector_t flood_detector_b;
-    static event_param_t flood_detector_b_event_param = {.number = 'b', .value = -1};
-    bc_flood_detector_init(&flood_detector_b, BC_FLOOD_DETECTOR_TYPE_LD_81_SENSOR_MODULE_CHANNEL_B);
-    bc_flood_detector_set_event_handler(&flood_detector_b, flood_detector_event_handler, &flood_detector_b_event_param);
-    bc_flood_detector_set_update_interval(&flood_detector_b, 1000);
-
-    //----------------------------
-
-    static bc_module_pir_t pir;
-    bc_module_pir_init(&pir);
-    bc_module_pir_set_event_handler(&pir, pir_event_handler, NULL);
-
-    //----------------------------
     
-    bc_radio_listen();
     bc_radio_set_event_handler(radio_event_handler, NULL);
 
     //----------------------------
@@ -168,6 +140,10 @@ void application_init(void)
     
     bc_module_relay_init(&relay_0_0, BC_MODULE_RELAY_I2C_ADDRESS_DEFAULT);
     bc_module_relay_init(&relay_0_1, BC_MODULE_RELAY_I2C_ADDRESS_ALTERNATE);
+
+    //----------------------------
+    
+    bc_radio_pub_info(FIRMWARE);
 
     //----------------------------
     
@@ -402,42 +378,6 @@ void barometer_tag_event_handler(bc_tag_barometer_t *self, bc_tag_barometer_even
     }
 }
 
-void flood_detector_event_handler(bc_flood_detector_t *self, bc_flood_detector_event_t event, void *event_param)
-{
-    if (event == BC_FLOOD_DETECTOR_EVENT_UPDATE)
-    {
-        if (bc_flood_detector_is_alarm(self) != ((event_param_t *) event_param)->value)
-        {
-            ((event_param_t *) event_param)->value = bc_flood_detector_is_alarm(self);
-
-            uint8_t buffer[3];
-            buffer[0] = RADIO_FLOOD_DETECTOR;
-            buffer[1] = ((event_param_t *) event_param)->number;
-            buffer[2] = ((event_param_t *) event_param)->value;
-            bc_radio_pub_buffer(buffer, sizeof(buffer));
-        }
-    }
-}
-
-void pir_event_handler(bc_module_pir_t *self, bc_module_pir_event_t event, void *event_param)
-{
-    (void) self;
-    (void) event_param;
-
-    if (event == BC_MODULE_PIR_EVENT_MOTION)
-    {
-        static uint16_t event_count = 0;
-        event_count++;
-
-        uint8_t buffer[1 + sizeof(event_count)];
-
-        buffer[0] = RADIO_PIR;
-
-        memcpy(buffer + 1, &event_count, sizeof(event_count));
-
-        bc_radio_pub_buffer(buffer, sizeof(buffer));
-    }
-}
 
 static void radio_event_handler(bc_radio_event_t event, void *event_param)
 {
@@ -578,6 +518,8 @@ static void _radio_pub_u16(uint8_t type, uint16_t value)
 }
 
 void encoder_event_handler(bc_module_encoder_event_t event, void *event_param) {
+    (void) event_param;
+
     if(event == BC_MODULE_ENCODER_EVENT_ROTATION) {
 	float new_reference_value = *vv_thermostat_get_reference_value(&vv_thermostat) + bc_module_encoder_get_increment() / 10.0;
 	vv_thermostat_set_reference_value(&vv_thermostat, &new_reference_value);
