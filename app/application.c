@@ -134,6 +134,8 @@ void application_init(void)
     bc_button_init_virtual(&lcd_right, BC_MODULE_LCD_BUTTON_RIGHT, bc_module_lcd_get_button_driver(), false);
     bc_button_set_event_handler(&lcd_right, lcd_button_event_handler, NULL);
 
+    //----------------------------
+
     static bc_flood_detector_t flood_detector_a;
     static event_param_t flood_detector_a_event_param = {.number = 'a', .value = -1};
     bc_flood_detector_init(&flood_detector_a, BC_FLOOD_DETECTOR_TYPE_LD_81_SENSOR_MODULE_CHANNEL_A);
@@ -146,19 +148,29 @@ void application_init(void)
     bc_flood_detector_set_event_handler(&flood_detector_b, flood_detector_event_handler, &flood_detector_b_event_param);
     bc_flood_detector_set_update_interval(&flood_detector_b, 1000);
 
+    //----------------------------
+
     static bc_module_pir_t pir;
     bc_module_pir_init(&pir);
     bc_module_pir_set_event_handler(&pir, pir_event_handler, NULL);
 
+    //----------------------------
+    
     bc_radio_listen();
     bc_radio_set_event_handler(radio_event_handler, NULL);
+
+    //----------------------------
 
     bc_module_battery_set_event_handler(battery_event_handler, NULL);
     bc_module_battery_set_update_interval(BATTERY_UPDATE_INTERVAL);    
 
+    //----------------------------
+    
     bc_module_relay_init(&relay_0_0, BC_MODULE_RELAY_I2C_ADDRESS_DEFAULT);
     bc_module_relay_init(&relay_0_1, BC_MODULE_RELAY_I2C_ADDRESS_ALTERNATE);
 
+    //----------------------------
+    
     bc_module_encoder_init();
     bc_module_encoder_set_event_handler(encoder_event_handler, NULL);
 

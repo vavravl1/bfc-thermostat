@@ -1,5 +1,6 @@
 
 #include "vv_thermostat.h"
+#include "vv_display.h"
 #include <bcl.h>
 
 void _vv_thermostat_task();
@@ -16,8 +17,11 @@ bool vv_thermostat_get_actual_state(struct vv_thermostat_self *self) {
 }
 
 void vv_thermostat_set_actual_state(struct vv_thermostat_self *self, bool new_state) {
-    self->actual_state = new_state;
-    bc_module_relay_set_state(self->relay, vv_thermostat_get_actual_state(self));
+    if(new_state != self->actual_state) {
+	self->actual_state = new_state;
+	bc_module_relay_set_state(self->relay, vv_thermostat_get_actual_state(self));
+	vv_display_render();
+    }
 }
 
 float* vv_thermostat_get_actual_value(struct vv_thermostat_self *self) {
