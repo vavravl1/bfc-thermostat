@@ -10,6 +10,7 @@ struct vv_thermostat_self {
     bc_module_relay_t* relay;
     float actual_value;
     float reference_value;
+    bool actual_state;
 } vv_thermostat;
 
 void vv_thermostat_init();

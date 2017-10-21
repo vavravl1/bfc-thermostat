@@ -125,7 +125,6 @@ void _draw_actual_data(uint8_t actual_data_index) {
 }
 
 void _draw_controller() {
-    bc_led_set_mode(&vv_display.green_led, BC_LED_MODE_OFF);    
     _draw_header(
 	    vv_display.temperature_controller.name,
 	    vv_display.temperature_controller.location
@@ -140,7 +139,9 @@ void _draw_controller() {
 	    vv_thermostat_get_reference_value(vv_display.temperature_controller.thermostat),
 	    80
     );     
+}
 
+void _switch_thermostat_led() {
     if(vv_thermostat_get_actual_state(vv_display.temperature_controller.thermostat)) {
 	bc_led_set_mode(&vv_display.green_led, BC_LED_MODE_ON);
     } else {
@@ -184,7 +185,7 @@ void vv_display_init(struct vv_thermostat_self* _thermostat) {
     vv_display.temperature_controller.format = "%.2f";
     vv_display.temperature_controller.thermostat = _thermostat;
 
-    bc_led_init_virtual(&vv_display.green_led, BC_MODULE_LCD_LED_GREEN, bc_module_lcd_get_led_driver(), 0);
+    bc_led_init_virtual(&vv_display.green_led, BC_MODULE_LCD_LED_GREEN, bc_module_lcd_get_led_driver(), 1);
 }
 
 void vv_lcd_page_render() {
@@ -196,6 +197,7 @@ void vv_lcd_page_render() {
     } else {
 	_draw_controller();
     }
+    _switch_thermostat_led();
     
     bc_module_core_pll_disable();
     bc_module_lcd_update();    
