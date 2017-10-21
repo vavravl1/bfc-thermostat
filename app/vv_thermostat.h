@@ -13,8 +13,14 @@ struct vv_thermostat_self {
 } vv_thermostat;
 
 void vv_thermostat_init();
+
+bool vv_thermostat_get_actual_state(struct vv_thermostat_self *self);
+void vv_thermostat_set_actual_state(struct vv_thermostat_self *self, bool new_state);
+
+float* vv_thermostat_get_actual_value(struct vv_thermostat_self *self);
 void vv_thermostat_set_actual_value(struct vv_thermostat_self *self, float* new_actual_value);
-float vv_thermostat_get_reference_value(struct vv_thermostat_self *self);
+
+float* vv_thermostat_get_reference_value(struct vv_thermostat_self *self);
 void vv_thermostat_set_reference_value(struct vv_thermostat_self *self, float* new_reference_value);
 
 

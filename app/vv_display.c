@@ -1,6 +1,7 @@
 
 
 #include "vv_display.h"
+#include "vv_thermostat.h"
 #include <math.h>
 
 #define _VV_GRAPH_TOP 80
@@ -99,91 +100,99 @@ void _draw_footer(char* format, float* values) {
 
 void _vv_display_push_new_value(uint8_t index, float_t new_value) {
     for(uint8_t i = 0; i < VV_VALUES_COUNT - 1; i++) {
-	vv_display_data.actual_data[index].values[i] = vv_display_data.actual_data[index].values[i + 1];
+	vv_display.actual_data[index].values[i] = vv_display.actual_data[index].values[i + 1];
     }
-    vv_display_data.actual_data[index].values[VV_VALUES_COUNT - 1] = new_value;
+    vv_display.actual_data[index].values[VV_VALUES_COUNT - 1] = new_value;
 }
 
 void _draw_actual_data(uint8_t actual_data_index) {
     _draw_header(
-	    vv_display_data.actual_data[actual_data_index].name,
-	    vv_display_data.actual_data[actual_data_index].location
+	    vv_display.actual_data[actual_data_index].name,
+	    vv_display.actual_data[actual_data_index].location
     );
     _draw_value(
-	    vv_display_data.actual_data[actual_data_index].format,
-	    vv_display_data.actual_data[actual_data_index].values + (VV_VALUES_COUNT - 1),
+	    vv_display.actual_data[actual_data_index].format,
+	    vv_display.actual_data[actual_data_index].values + (VV_VALUES_COUNT - 1),
 	    45
     );
     _draw_graph(
-	    vv_display_data.actual_data[actual_data_index].values
+	    vv_display.actual_data[actual_data_index].values
     );
     _draw_footer(
-	    vv_display_data.actual_data[actual_data_index].format,	    
-	    vv_display_data.actual_data[actual_data_index].values
+	    vv_display.actual_data[actual_data_index].format,	    
+	    vv_display.actual_data[actual_data_index].values
     );
 }
 
 void _draw_controller() {
+    bc_led_set_mode(&vv_display.green_led, BC_LED_MODE_OFF);    
     _draw_header(
-	    vv_display_data.temperature_controller.name,
-	    vv_display_data.temperature_controller.location
+	    vv_display.temperature_controller.name,
+	    vv_display.temperature_controller.location
     );    
     _draw_value(
-	    vv_display_data.temperature_controller.format,	    	    
-	    vv_display_data.temperature_controller.actual_value,
+	    vv_display.temperature_controller.format,	    	    
+	    vv_thermostat_get_actual_value(vv_display.temperature_controller.thermostat),
 	    45
     );    
     _draw_value(
-	    vv_display_data.temperature_controller.format,	    	    
-	    vv_display_data.temperature_controller.reference_value,
+	    vv_display.temperature_controller.format,	    	    
+	    vv_thermostat_get_reference_value(vv_display.temperature_controller.thermostat),
 	    80
     );     
+
+    if(vv_thermostat_get_actual_state(vv_display.temperature_controller.thermostat)) {
+	bc_led_set_mode(&vv_display.green_led, BC_LED_MODE_ON);
+    } else {
+	bc_led_set_mode(&vv_display.green_led, BC_LED_MODE_OFF);
+    }
 }
 
-void vv_display_init(float* _actual_value, float* _reference_value) {
-    vv_display_data._actual_data_index = 0;
+void vv_display_init(struct vv_thermostat_self* _thermostat) {
+    vv_display.actual_data_index = 0;
 
-    vv_display_data.actual_data[0].name = "L1 power [kW]";
-    vv_display_data.actual_data[0].location = "House";
-    vv_display_data.actual_data[0].format = "%.2f";
+    vv_display.actual_data[0].name = "L1 power [kW]";
+    vv_display.actual_data[0].location = "House";
+    vv_display.actual_data[0].format = "%.2f";
     for(uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
-	vv_display_data.actual_data[0].values[i] = 0;
+	vv_display.actual_data[0].values[i] = 0;
     }
     
-    vv_display_data.actual_data[1].name = "Temperature [\xb0]";
-    vv_display_data.actual_data[1].location = "Living room";
-    vv_display_data.actual_data[1].format = "%.2f";
+    vv_display.actual_data[1].name = "Temperature [\xb0]";
+    vv_display.actual_data[1].location = "Living room";
+    vv_display.actual_data[1].format = "%.2f";
     for(uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
-	vv_display_data.actual_data[1].values[i] = 0;
+	vv_display.actual_data[1].values[i] = 0;
     }
 
-    vv_display_data.actual_data[2].name = "Temperature [\xb0]";
-    vv_display_data.actual_data[2].location = "Terrace";
-    vv_display_data.actual_data[2].format = "%.2f";
+    vv_display.actual_data[2].name = "Temperature [\xb0]";
+    vv_display.actual_data[2].location = "Terrace";
+    vv_display.actual_data[2].format = "%.2f";
     for(uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
-	vv_display_data.actual_data[2].values[i] = 0;
+	vv_display.actual_data[2].values[i] = 0;
     }    
 
-    vv_display_data.actual_data[3].name = "CO2 [ppm]";
-    vv_display_data.actual_data[3].location = "Upstairs";
-    vv_display_data.actual_data[3].format = "%.0f";
+    vv_display.actual_data[3].name = "CO2 [ppm]";
+    vv_display.actual_data[3].location = "Upstairs";
+    vv_display.actual_data[3].format = "%.0f";
     for(uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
-	vv_display_data.actual_data[3].values[i] = 0;
+	vv_display.actual_data[3].values[i] = 0;
     }        
 
-    vv_display_data.temperature_controller.name = "Heating [\xb0]";
-    vv_display_data.temperature_controller.location = "Home  ";
-    vv_display_data.temperature_controller.format = "%.2f";
-    vv_display_data.temperature_controller.actual_value = _actual_value;
-    vv_display_data.temperature_controller.reference_value = _reference_value;
+    vv_display.temperature_controller.name = "Heating [\xb0]";
+    vv_display.temperature_controller.location = "Home  ";
+    vv_display.temperature_controller.format = "%.2f";
+    vv_display.temperature_controller.thermostat = _thermostat;
+
+    bc_led_init_virtual(&vv_display.green_led, BC_MODULE_LCD_LED_GREEN, bc_module_lcd_get_led_driver(), 0);
 }
 
 void vv_lcd_page_render() {
     bc_module_core_pll_enable();
     bc_module_lcd_clear();
 
-    if(vv_display_data._actual_data_index < VV_DATA_COUNT) {
-	_draw_actual_data(vv_display_data._actual_data_index);
+    if(vv_display.actual_data_index < VV_DATA_COUNT) {
+	_draw_actual_data(vv_display.actual_data_index);
     } else {
 	_draw_controller();
     }
@@ -193,12 +202,12 @@ void vv_lcd_page_render() {
 }
 
 void vv_lcd_next_page() {
-    vv_display_data._actual_data_index = (vv_display_data._actual_data_index + 1) % VV_PAGES_COUNT;
+    vv_display.actual_data_index = (vv_display.actual_data_index + 1) % VV_PAGES_COUNT;
 }
 
 void vv_lcd_prev_page() {
-    vv_display_data._actual_data_index--;
-    if(vv_display_data._actual_data_index < 0)  vv_display_data._actual_data_index = VV_PAGES_COUNT - 1;    
+    vv_display.actual_data_index--;
+    if(vv_display.actual_data_index < 0)  vv_display.actual_data_index = VV_PAGES_COUNT - 1;    
 }
 
 #define _VV_DISPLAY_RADIO_TYPE             (0)

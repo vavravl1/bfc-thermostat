@@ -22,17 +22,17 @@ struct display_controller {
     char* name;
     char* location;
     char *format;
-    float *actual_value;
-    float *reference_value;
+    struct vv_thermostat_self* thermostat;
 };
 
-struct vv_display_data_self {
-    int8_t _actual_data_index;
+struct vv_display_self {
+    int8_t actual_data_index;
+    bc_led_t green_led;
     struct display_data actual_data[VV_DATA_COUNT];
     struct display_controller temperature_controller;
-} vv_display_data;
+} vv_display;
 
-void vv_display_init(float* _actual_value, float* _reference_value);
+void vv_display_init(struct vv_thermostat_self* _thermostat);
 void vv_lcd_page_render();
 void vv_lcd_next_page();
 void vv_lcd_prev_page();

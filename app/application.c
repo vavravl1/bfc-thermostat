@@ -161,7 +161,7 @@ void application_init(void)
     bc_module_encoder_set_event_handler(encoder_event_handler, NULL);
 
     vv_thermostat_init(&relay_0_0);
-    vv_display_init(&vv_thermostat.actual_value, &vv_thermostat.reference_value);
+    vv_display_init(&vv_thermostat);
 }
 
 void application_task(void)
@@ -558,7 +558,7 @@ static void _radio_pub_u16(uint8_t type, uint16_t value)
 
 void encoder_event_handler(bc_module_encoder_event_t event, void *event_param) {
     if(event == BC_MODULE_ENCODER_EVENT_ROTATION) {
-	float new_reference_value = vv_thermostat_get_reference_value(&vv_thermostat) + bc_module_encoder_get_increment() / 10.0;
+	float new_reference_value = *vv_thermostat_get_reference_value(&vv_thermostat) + bc_module_encoder_get_increment() / 10.0;
 	vv_thermostat_set_reference_value(&vv_thermostat, &new_reference_value);
 	vv_lcd_page_render();
     }
