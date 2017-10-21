@@ -1,9 +1,9 @@
 #include <application.h>
 #include <radio.h>
 
+#include "vv_radio.h"
 #include "vv_display.h"
 #include "vv_thermostat.h"
-
 
 #define BATTERY_UPDATE_INTERVAL (60 * 60 * 1000)
 
@@ -528,9 +528,9 @@ void bc_radio_on_buffer(uint64_t *peer_device_address, uint8_t *buffer, size_t *
             _radio_pub_state(RADIO_RELAY_POWER, bc_module_power_relay_get_state());
             break;
         }
-	case RADIO_VV_DISPLAY:
+	case VV_RADIO_THERMOSTAT:
 	{
-	    vv_display_parse_incoming_buffer(length, buffer);
+	    vv_radio_parse_incoming_buffer(length, buffer);
 	    break;
 	}
         default:

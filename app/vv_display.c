@@ -98,13 +98,6 @@ void _draw_footer(char* format, float* values) {
     bc_module_lcd_draw_string(_left_intend_to_center(str, 7), 113, str, true);     
 }
 
-void _vv_display_push_new_value(uint8_t index, float_t new_value) {
-    for(uint8_t i = 0; i < VV_VALUES_COUNT - 1; i++) {
-	vv_display.actual_data[index].values[i] = vv_display.actual_data[index].values[i + 1];
-    }
-    vv_display.actual_data[index].values[VV_VALUES_COUNT - 1] = new_value;
-}
-
 void _draw_actual_data(uint8_t actual_data_index) {
     _draw_header(
 	    vv_display.actual_data[actual_data_index].name,
@@ -212,31 +205,10 @@ void vv_lcd_prev_page() {
     if(vv_display.actual_data_index < 0)  vv_display.actual_data_index = VV_PAGES_COUNT - 1;    
 }
 
-#define _VV_DISPLAY_RADIO_TYPE             (0)
-#define _VV_DISPLAY_RADIO_ADDRESS          (_VV_DISPLAY_RADIO_TYPE + sizeof(uint8_t))
-#define _VV_DISPLAY_RADIO_DATA_TYPE_INDEX  (_VV_DISPLAY_RADIO_ADDRESS + sizeof(uint64_t))
-#define _VV_DISPLAY_RADIO_NEW_VAL          (_VV_DISPLAY_RADIO_DATA_TYPE_INDEX + sizeof(uint8_t))
-#define _VV_DISPLAY_RADIO_MESSAGE_SIZE     (_VV_DISPLAY_RADIO_NEW_VAL + sizeof(float))
-
-void vv_display_parse_incoming_buffer(size_t *length, uint8_t *buffer) {
-    if (*length != _VV_DISPLAY_RADIO_MESSAGE_SIZE) { //BUFFER_TYPE ADDRESS DATA_TYPE NEW_VALUE
-	return;
+void vv_display_push_new_value(uint8_t index, float_t new_value) {
+    for(uint8_t i = 0; i < VV_VALUES_COUNT - 1; i++) {
+	vv_display.actual_data[index].values[i] = vv_display.actual_data[index].values[i + 1];
     }
-    uint8_t data_type_index = buffer[_VV_DISPLAY_RADIO_DATA_TYPE_INDEX];
-    float new_val;
-    memcpy(&new_val, buffer + _VV_DISPLAY_RADIO_NEW_VAL, sizeof(float));
-    _vv_display_push_new_value(data_type_index, new_val);	    
-
-    vv_lcd_page_render();
-}
-
-void vv_display_send_update(uint64_t *device_address, uint8_t data_type_index, float *new_val) {
-    uint8_t buffer[_VV_DISPLAY_RADIO_MESSAGE_SIZE];    
-    buffer[_VV_DISPLAY_RADIO_TYPE] = RADIO_VV_DISPLAY;
-    memcpy(buffer + _VV_DISPLAY_RADIO_ADDRESS, device_address, sizeof(uint64_t));    
-    buffer[_VV_DISPLAY_RADIO_DATA_TYPE_INDEX] = data_type_index;
-    memcpy(buffer + _VV_DISPLAY_RADIO_NEW_VAL, new_val, sizeof(*new_val));    
-
-    bc_radio_pub_buffer(buffer, sizeof(buffer));
+    vv_display.actual_data[index].values[VV_VALUES_COUNT - 1] = new_value;
 }
 
