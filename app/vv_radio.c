@@ -16,7 +16,7 @@ void vv_radio_parse_incoming_buffer(size_t *length, uint8_t *buffer) {
 
     if(data_type_index < VV_DATA_COUNT) {
 	vv_display_push_new_value(data_type_index, new_val);	    
-    } else {
+    } else if(data_type_index == VV_RADIO_DATA_TYPE_THERMOSTAT_REFERENCE_VALUE) {
 	vv_thermostat_set_reference_value(&vv_thermostat, &new_val);
     }
 

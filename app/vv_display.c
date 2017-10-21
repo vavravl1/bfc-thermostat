@@ -1,6 +1,7 @@
 
 
 #include "vv_display.h"
+#include "vv_radio.h"
 #include "vv_thermostat.h"
 #include <math.h>
 
@@ -145,32 +146,32 @@ void _switch_thermostat_led() {
 void vv_display_init(struct vv_thermostat_self* _thermostat) {
     vv_display.actual_data_index = 0;
 
-    vv_display.actual_data[0].name = "L1 power [kW]";
-    vv_display.actual_data[0].location = "House";
-    vv_display.actual_data[0].format = "%.2f";
+    vv_display.actual_data[VV_RADIO_DATA_TYPE_L1_POWER].name = "L1 power [kW]";
+    vv_display.actual_data[VV_RADIO_DATA_TYPE_L1_POWER].location = "House";
+    vv_display.actual_data[VV_RADIO_DATA_TYPE_L1_POWER].format = "%.2f";
     for(uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
-	vv_display.actual_data[0].values[i] = 0;
+	vv_display.actual_data[VV_RADIO_DATA_TYPE_L1_POWER].values[i] = 0;
     }
     
-    vv_display.actual_data[1].name = "Temperature [\xb0]";
-    vv_display.actual_data[1].location = "Living room";
-    vv_display.actual_data[1].format = "%.2f";
+    vv_display.actual_data[VV_RADIO_DATA_TYPE_TEMPERATURE_LIVING_ROOM].name = "Temperature [\xb0]";
+    vv_display.actual_data[VV_RADIO_DATA_TYPE_TEMPERATURE_LIVING_ROOM].location = "Living room";
+    vv_display.actual_data[VV_RADIO_DATA_TYPE_TEMPERATURE_LIVING_ROOM].format = "%.2f";
     for(uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
-	vv_display.actual_data[1].values[i] = 0;
+	vv_display.actual_data[VV_RADIO_DATA_TYPE_TEMPERATURE_LIVING_ROOM].values[i] = 0;
     }
 
-    vv_display.actual_data[2].name = "Temperature [\xb0]";
-    vv_display.actual_data[2].location = "Terrace";
-    vv_display.actual_data[2].format = "%.2f";
+    vv_display.actual_data[VV_RADIO_DATA_TYPE_TEMPERATURE_TERRACE].name = "Temperature [\xb0]";
+    vv_display.actual_data[VV_RADIO_DATA_TYPE_TEMPERATURE_TERRACE].location = "Terrace";
+    vv_display.actual_data[VV_RADIO_DATA_TYPE_TEMPERATURE_TERRACE].format = "%.2f";
     for(uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
-	vv_display.actual_data[2].values[i] = 0;
+	vv_display.actual_data[VV_RADIO_DATA_TYPE_TEMPERATURE_TERRACE].values[i] = 0;
     }    
 
-    vv_display.actual_data[3].name = "CO2 [ppm]";
-    vv_display.actual_data[3].location = "Upstairs";
-    vv_display.actual_data[3].format = "%.0f";
+    vv_display.actual_data[VV_RADIO_DATA_TYPE_CO2].name = "CO2 [ppm]";
+    vv_display.actual_data[VV_RADIO_DATA_TYPE_CO2].location = "Upstairs";
+    vv_display.actual_data[VV_RADIO_DATA_TYPE_CO2].format = "%.0f";
     for(uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
-	vv_display.actual_data[3].values[i] = 0;
+	vv_display.actual_data[VV_RADIO_DATA_TYPE_CO2].values[i] = 0;
     }        
 
     vv_display.temperature_controller.name = "Heating [\xb0]";
