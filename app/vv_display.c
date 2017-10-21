@@ -74,7 +74,6 @@ void _draw_graph(float* values) {
 
         bc_module_lcd_set_font(&bc_font_ubuntu_11);
         bc_module_lcd_draw_char(left - 2, top - 6, 'o', true);
-	
 
 	bc_module_lcd_draw_line(last_left, last_top, left, top, true);
 	last_top = top;
@@ -131,17 +130,17 @@ void _draw_controller() {
     );    
     _draw_value(
 	    vv_display_data.temperature_controller.format,	    	    
-	    &vv_display_data.temperature_controller.actualValue,
+	    vv_display_data.temperature_controller.actual_value,
 	    45
     );    
     _draw_value(
 	    vv_display_data.temperature_controller.format,	    	    
-	    &vv_display_data.temperature_controller.referenceValue,
+	    vv_display_data.temperature_controller.reference_value,
 	    80
     );     
 }
 
-void vv_display_init() {
+void vv_display_init(float* _actual_value, float* _reference_value) {
     vv_display_data._actual_data_index = 0;
 
     vv_display_data.actual_data[0].name = "L1 power [kW]";
@@ -173,10 +172,10 @@ void vv_display_init() {
     }        
 
     vv_display_data.temperature_controller.name = "Heating [\xb0]";
-    vv_display_data.temperature_controller.location = "Home";
+    vv_display_data.temperature_controller.location = "Home  ";
     vv_display_data.temperature_controller.format = "%.2f";
-    vv_display_data.temperature_controller.actualValue = 19.8;
-    vv_display_data.temperature_controller.referenceValue = 20.5;
+    vv_display_data.temperature_controller.actual_value = _actual_value;
+    vv_display_data.temperature_controller.reference_value = _reference_value;
 }
 
 void vv_lcd_page_render() {

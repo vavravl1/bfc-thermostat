@@ -22,8 +22,8 @@ struct display_controller {
     char* name;
     char* location;
     char *format;
-    float actualValue;
-    float referenceValue;
+    float *actual_value;
+    float *reference_value;
 };
 
 struct vv_display_data_self {
@@ -32,12 +32,16 @@ struct vv_display_data_self {
     struct display_controller temperature_controller;
 } vv_display_data;
 
-void vv_display_init();
+void vv_display_init(float* _actual_value, float* _reference_value);
 void vv_lcd_page_render();
 void vv_lcd_next_page();
 void vv_lcd_prev_page();
 
 void vv_display_parse_incoming_buffer(size_t *length, uint8_t *buffer);
 void vv_display_send_update(uint64_t *device_address, uint8_t data_type_index, float *new_val);
+
+void vv_display_set_actual_value(float new_actual_value);
+void vv_display_set_reference_value(float new_reference_value);
+float vv_display_get_reference_value();
 
 #endif

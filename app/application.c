@@ -2,6 +2,7 @@
 #include <radio.h>
 
 #include "vv_display.h"
+#include "vv_thermostat.h"
 
 
 #define BATTERY_UPDATE_INTERVAL (60 * 60 * 1000)
@@ -49,7 +50,6 @@ void temperature_tag_event_handler(bc_tag_temperature_t *self, bc_tag_temperatur
 void humidity_tag_event_handler(bc_tag_humidity_t *self, bc_tag_humidity_event_t event, void *event_param);
 void lux_meter_event_handler(bc_tag_lux_meter_t *self, bc_tag_lux_meter_event_t event, void *event_param);
 void barometer_tag_event_handler(bc_tag_barometer_t *self, bc_tag_barometer_event_t event, void *event_param);
-void co2_event_handler(bc_module_co2_event_t event, void *event_param);
 void flood_detector_event_handler(bc_flood_detector_t *self, bc_flood_detector_event_t event, void *event_param);
 void pir_event_handler(bc_module_pir_t *self, bc_module_pir_event_t event, void*event_param);
 void encoder_event_handler(bc_module_encoder_event_t event, void *event_param);
@@ -123,13 +123,6 @@ void application_init(void)
 
     //----------------------------
 
-    static event_param_t co2_event_param = { .next_pub = 0 };
-    bc_module_co2_init();
-    bc_module_co2_set_update_interval(CO2_UPDATE_INTERVAL);
-    bc_module_co2_set_event_handler(co2_event_handler, &co2_event_param);
-
-    //----------------------------
-
     bc_module_lcd_init(&_bc_module_lcd_framebuffer);
 
     static bc_button_t lcd_left;
@@ -164,7 +157,11 @@ void application_init(void)
     bc_module_relay_init(&relay_0_0, BC_MODULE_RELAY_I2C_ADDRESS_DEFAULT);
     bc_module_relay_init(&relay_0_1, BC_MODULE_RELAY_I2C_ADDRESS_ALTERNATE);
 
-    vv_display_init();
+    bc_module_encoder_init();
+    bc_module_encoder_set_event_handler(encoder_event_handler, NULL);
+
+    vv_thermostat_init(&relay_0_0);
+    vv_display_init(&vv_thermostat.actual_value, &vv_thermostat.reference_value);
 }
 
 void application_task(void)
@@ -261,10 +258,6 @@ void button_event_handler(bc_button_t *self, bc_button_event_t event, void *even
         static uint16_t event_count = 0;
 
         bc_radio_pub_push_button(&event_count);
-
-        event_count++;
-
-        bc_module_relay_set_state(&relay_0_0, event_count % 2 == 0);	
     }
     else if (event == BC_BUTTON_EVENT_HOLD)
     {
@@ -310,6 +303,7 @@ void temperature_tag_event_handler(bc_tag_temperature_t *self, bc_tag_temperatur
 
     if (bc_tag_temperature_get_temperature_celsius(self, &value))
     {
+	vv_thermostat_set_actual_value(&vv_thermostat, &value);
         if ((fabs(value - param->value) >= TEMPERATURE_TAG_PUB_VALUE_CHANGE) || (param->next_pub < bc_scheduler_get_spin_tick()))
         {
             bc_radio_pub_thermometer(param->number, &value);
@@ -396,27 +390,6 @@ void barometer_tag_event_handler(bc_tag_barometer_t *self, bc_tag_barometer_even
         param->next_pub = bc_scheduler_get_spin_tick() + BAROMETER_TAG_PUB_NO_CHANGE_INTEVAL;
 
         bc_scheduler_plan_now(0);
-    }
-}
-
-void co2_event_handler(bc_module_co2_event_t event, void *event_param)
-{
-    event_param_t *param = (event_param_t *) event_param;
-    float value;
-
-    if (event == BC_MODULE_CO2_EVENT_UPDATE)
-    {
-        if (bc_module_co2_get_concentration(&value))
-        {
-            if ((fabs(value - param->value) >= CO2_PUB_VALUE_CHANGE) || (param->next_pub < bc_scheduler_get_spin_tick()))
-            {
-                bc_radio_pub_co2(&value);
-                param->value = value;
-                param->next_pub = bc_scheduler_get_spin_tick() + CO2_PUB_NO_CHANGE_INTERVAL;
-
-                bc_scheduler_plan_now(0);
-            }
-        }
     }
 }
 
@@ -581,5 +554,13 @@ static void _radio_pub_u16(uint8_t type, uint16_t value)
     buffer[0] = type;
     memcpy(buffer + 1, &value, sizeof(value));
     bc_radio_pub_buffer(buffer, sizeof(buffer));
+}
+
+void encoder_event_handler(bc_module_encoder_event_t event, void *event_param) {
+    if(event == BC_MODULE_ENCODER_EVENT_ROTATION) {
+	float new_reference_value = vv_thermostat_get_reference_value(&vv_thermostat) + bc_module_encoder_get_increment() / 10.0;
+	vv_thermostat_set_reference_value(&vv_thermostat, &new_reference_value);
+	vv_lcd_page_render();
+    }
 }
 
