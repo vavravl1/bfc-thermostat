@@ -20,6 +20,8 @@
 #define VV_RADIO_NEW_VAL          (VV_RADIO_DATA_TYPE_INDEX + sizeof(uint8_t))
 #define VV_RADIO_MESSAGE_SIZE     (VV_RADIO_NEW_VAL + sizeof(float))
 
+void vv_radio_listening_init();
+
 void vv_radio_parse_incoming_buffer(size_t *length, uint8_t *buffer);
 void vv_radio_send_update(uint64_t *device_address, uint8_t data_type_index, float *new_val);
 

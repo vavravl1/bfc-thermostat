@@ -52,18 +52,28 @@ void _draw_value(char *format, float* value, uint8_t top) {
 void _draw_graph(float* values) {
     float min = _find_min(values, VV_VALUES_COUNT);
     float max = _find_max(values, VV_VALUES_COUNT);
+    
+    float x;
+    float y;
 
-    //(19.3, 20.3) -> (115 -> 80)
-    //(19.3, 20.3) -> (35 -> 0)
+    if(max != min) {
+	//(19.3, 20.3) -> (115 -> 80)
+	//(19.3, 20.3) -> (35 -> 0)
 
-    //19.3*x + y = 35
-    //20.3*x + y = 0
+	//19.3*x + y = 35
+	//20.3*x + y = 0
 
-    // x = -35 / (max - min)
-    // y = - x * max
+	// x = -35 / (max - min)
+	// y = - x * max
 
-    float_t x = - (_VV_GRAPH_BOTTOM - _VV_GRAPH_TOP) / (max - min);
-    float_t y = - x * max + _VV_GRAPH_TOP;
+	x = - (_VV_GRAPH_BOTTOM - _VV_GRAPH_TOP) / (max - min);
+	y = - x * max + _VV_GRAPH_TOP;
+    } else {
+	// (10, 10) -> (115 -> 80)
+	// (10, 10) -> 195 2 = 98
+	x = 0;
+	y = 98;
+    }
 
     int left_step = (128 - (2 * _VV_GRAPH_SIDE)) / VV_VALUES_COUNT;
 
@@ -137,9 +147,9 @@ void _draw_controller() {
 
 void _switch_thermostat_led() {
     if(vv_thermostat_get_actual_state(vv_display.temperature_controller.thermostat)) {
-	bc_led_set_mode(&vv_display.green_led, BC_LED_MODE_ON);
+	bc_led_set_mode(&vv_display.red_led, BC_LED_MODE_ON);
     } else {
-	bc_led_set_mode(&vv_display.green_led, BC_LED_MODE_OFF);
+	bc_led_set_mode(&vv_display.red_led, BC_LED_MODE_OFF);
     }
 }
 
@@ -180,6 +190,7 @@ void vv_display_init(struct vv_thermostat_self* _thermostat) {
     vv_display.temperature_controller.thermostat = _thermostat;
 
     bc_led_init_virtual(&vv_display.green_led, BC_MODULE_LCD_LED_GREEN, bc_module_lcd_get_led_driver(), 1);
+    bc_led_init_virtual(&vv_display.red_led, BC_MODULE_LCD_LED_RED, bc_module_lcd_get_led_driver(), 1);
 }
 
 void vv_display_render() {

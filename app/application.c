@@ -38,6 +38,7 @@ static bc_module_relay_t relay_0_1;
 
 static void radio_event_handler(bc_radio_event_t event, void *event_param);
 static void _radio_pub_state(uint8_t type, bool state);
+static void battery_event_handler(bc_module_battery_event_t event, void *event_param);
 
 static void temperature_tag_init(bc_i2c_channel_t i2c_channel, bc_tag_temperature_i2c_address_t i2c_address, temperature_tag_t *tag);
 static void humidity_tag_init(bc_tag_humidity_revision_t revision, bc_i2c_channel_t i2c_channel, humidity_tag_t *tag);
@@ -152,7 +153,8 @@ void application_init(void)
     bc_radio_listen();
     bc_radio_set_event_handler(radio_event_handler, NULL);
 
-    bc_module_power_init();
+    bc_module_battery_set_event_handler(battery_event_handler, NULL);
+    bc_module_battery_set_update_interval(BATTERY_UPDATE_INTERVAL);    
 
     bc_module_relay_init(&relay_0_0, BC_MODULE_RELAY_I2C_ADDRESS_DEFAULT);
     bc_module_relay_init(&relay_0_1, BC_MODULE_RELAY_I2C_ADDRESS_ALTERNATE);
@@ -160,6 +162,7 @@ void application_init(void)
     bc_module_encoder_init();
     bc_module_encoder_set_event_handler(encoder_event_handler, NULL);
 
+    vv_radio_listening_init();
     vv_thermostat_init(&relay_0_0);
     vv_display_init(&vv_thermostat);
 }
@@ -540,6 +543,18 @@ static void _radio_pub_state(uint8_t type, bool state)
     buffer[0] = type;
     buffer[1] = state;
     bc_radio_pub_buffer(buffer, sizeof(buffer));
+}
+
+
+void battery_event_handler(bc_module_battery_event_t event, void *event_param) {
+    (void) event;
+    (void) event_param;
+
+    float voltage;
+
+    if (bc_module_battery_get_voltage(&voltage)) {
+        bc_radio_pub_battery(0, &voltage);
+    }
 }
 
 static void _radio_pub_u16(uint8_t type, uint16_t value)

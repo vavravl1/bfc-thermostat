@@ -26,6 +26,7 @@ struct display_controller {
 struct vv_display_self {
     int8_t actual_data_index;
     bc_led_t green_led;
+    bc_led_t red_led;
     struct display_data actual_data[VV_DATA_COUNT];
     struct display_controller temperature_controller;
 } vv_display;
