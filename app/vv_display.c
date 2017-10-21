@@ -181,7 +181,11 @@ void vv_display_init(struct vv_thermostat_self* _thermostat) {
     bc_led_init_virtual(&vv_display.green_led, BC_MODULE_LCD_LED_GREEN, bc_module_lcd_get_led_driver(), 1);
 }
 
-void vv_lcd_page_render() {
+void vv_display_render() {
+    if (!bc_module_lcd_is_ready()) {
+        return;
+    }
+
     bc_module_core_pll_enable();
     bc_module_lcd_clear();
 
@@ -196,11 +200,11 @@ void vv_lcd_page_render() {
     bc_module_lcd_update();    
 }
 
-void vv_lcd_next_page() {
+void vv_display_next_page() {
     vv_display.actual_data_index = (vv_display.actual_data_index + 1) % VV_PAGES_COUNT;
 }
 
-void vv_lcd_prev_page() {
+void vv_display_prev_page() {
     vv_display.actual_data_index--;
     if(vv_display.actual_data_index < 0)  vv_display.actual_data_index = VV_PAGES_COUNT - 1;    
 }

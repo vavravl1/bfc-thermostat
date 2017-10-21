@@ -166,13 +166,7 @@ void application_init(void)
 
 void application_task(void)
 {
-    if (!bc_module_lcd_is_ready())
-    {
-        return;
-    }
-
-    vv_lcd_page_render();
-    bc_module_lcd_update();
+    vv_display_render();
 }
 
 static void temperature_tag_init(bc_i2c_channel_t i2c_channel, bc_tag_temperature_i2c_address_t i2c_address, temperature_tag_t *tag)
@@ -279,9 +273,9 @@ void lcd_button_event_handler(bc_button_t *self, bc_button_event_t event, void *
     }
 
     if (self->_channel.virtual_channel == BC_MODULE_LCD_BUTTON_LEFT) {
-	vv_lcd_prev_page();
+	vv_display_prev_page();
     } else if(self->_channel.virtual_channel == BC_MODULE_LCD_BUTTON_RIGHT) {
-	vv_lcd_next_page();	
+	vv_display_next_page();	
     } else {
 	return;
     }
@@ -560,7 +554,7 @@ void encoder_event_handler(bc_module_encoder_event_t event, void *event_param) {
     if(event == BC_MODULE_ENCODER_EVENT_ROTATION) {
 	float new_reference_value = *vv_thermostat_get_reference_value(&vv_thermostat) + bc_module_encoder_get_increment() / 10.0;
 	vv_thermostat_set_reference_value(&vv_thermostat, &new_reference_value);
-	vv_lcd_page_render();
+	vv_display_render();
     }
 }
 
