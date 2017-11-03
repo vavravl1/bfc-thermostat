@@ -145,12 +145,12 @@ void _draw_controller() {
     );     
 }
 
-void _switch_thermostat_led() {
-    if(vv_thermostat_get_actual_state(vv_display.temperature_controller.thermostat)) {
-	bc_led_set_mode(&vv_display.red_led, BC_LED_MODE_ON);
-    } else {
-	bc_led_set_mode(&vv_display.red_led, BC_LED_MODE_OFF);
-    }
+void vv_display_blink_red() {
+    bc_led_pulse(&vv_display.red_led, 1000);
+}
+
+void vv_display_blink_green() {
+    bc_led_pulse(&vv_display.green_led, 1000);
 }
 
 void vv_display_init(struct vv_thermostat_self* _thermostat) {
@@ -161,6 +161,13 @@ void vv_display_init(struct vv_thermostat_self* _thermostat) {
     vv_display.actual_data[VV_RADIO_DATA_TYPE_L1_POWER].format = "%.2f";
     for(uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
 	vv_display.actual_data[VV_RADIO_DATA_TYPE_L1_POWER].values[i] = 0;
+    }
+
+    vv_display.actual_data[VV_RADIO_DATA_TYPE_FVE_POWER].name = "Fve power [W]";
+    vv_display.actual_data[VV_RADIO_DATA_TYPE_FVE_POWER].location = "House";
+    vv_display.actual_data[VV_RADIO_DATA_TYPE_FVE_POWER].format = "%.0f";
+    for(uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
+	vv_display.actual_data[VV_RADIO_DATA_TYPE_FVE_POWER].values[i] = 0;
     }
     
     vv_display.actual_data[VV_RADIO_DATA_TYPE_TEMPERATURE_LIVING_ROOM].name = "Temperature [\xb0]";
@@ -177,8 +184,15 @@ void vv_display_init(struct vv_thermostat_self* _thermostat) {
 	vv_display.actual_data[VV_RADIO_DATA_TYPE_TEMPERATURE_TERRACE].values[i] = 0;
     }    
 
+    vv_display.actual_data[VV_RADIO_DATA_TYPE_TEMPERATURE_BEDROOM].name = "Temperature [\xb0]";
+    vv_display.actual_data[VV_RADIO_DATA_TYPE_TEMPERATURE_BEDROOM].location = "Bedroom";
+    vv_display.actual_data[VV_RADIO_DATA_TYPE_TEMPERATURE_BEDROOM].format = "%.2f";
+    for(uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
+	vv_display.actual_data[VV_RADIO_DATA_TYPE_TEMPERATURE_BEDROOM].values[i] = 0;
+    }      
+
     vv_display.actual_data[VV_RADIO_DATA_TYPE_CO2].name = "CO2 [ppm]";
-    vv_display.actual_data[VV_RADIO_DATA_TYPE_CO2].location = "Upstairs";
+    vv_display.actual_data[VV_RADIO_DATA_TYPE_CO2].location = "    Bedroom";
     vv_display.actual_data[VV_RADIO_DATA_TYPE_CO2].format = "%.0f";
     for(uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
 	vv_display.actual_data[VV_RADIO_DATA_TYPE_CO2].values[i] = 0;
@@ -206,7 +220,6 @@ void vv_display_render() {
     } else {
 	_draw_controller();
     }
-    _switch_thermostat_led();
     
     bc_module_core_pll_disable();
     bc_module_lcd_update();    

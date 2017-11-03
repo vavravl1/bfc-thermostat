@@ -21,6 +21,11 @@ void vv_thermostat_set_actual_state(struct vv_thermostat_self *self, bool new_st
 	self->actual_state = new_state;
 	bc_module_relay_set_state(self->relay, vv_thermostat_get_actual_state(self));
 	vv_display_render();
+	if(new_state == true) {
+	    vv_display_blink_red();
+	} else {
+	    vv_display_blink_green();
+	}
     }
 }
 
@@ -30,6 +35,7 @@ float* vv_thermostat_get_actual_value(struct vv_thermostat_self *self) {
 
 void vv_thermostat_set_actual_value(struct vv_thermostat_self *self, float* new_actual_value) {
     self->actual_value = *new_actual_value;
+    vv_display_render();
 }
 
 float* vv_thermostat_get_reference_value(struct vv_thermostat_self *self) {

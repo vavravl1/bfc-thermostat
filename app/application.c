@@ -153,6 +153,7 @@ void application_init(void)
     vv_radio_listening_init();
     vv_thermostat_init(&relay_0_0);
     vv_display_init(&vv_thermostat);
+    //vv_night_light_init(&lux_meter_1_0);
 }
 
 void application_task(void)
