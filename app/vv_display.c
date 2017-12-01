@@ -138,11 +138,19 @@ void _draw_controller() {
 	    vv_thermostat_get_actual_value(vv_display.temperature_controller.thermostat),
 	    45
     );    
-    _draw_value(
-	    vv_display.temperature_controller.format,	    	    
-	    vv_thermostat_get_reference_value(vv_display.temperature_controller.thermostat),
-	    80
-    );     
+    if(vv_thermostat_is_local_controll(vv_display.temperature_controller.thermostat)) {    
+	_draw_value(
+		vv_display.temperature_controller.format,	    	    
+		vv_thermostat_get_reference_value(vv_display.temperature_controller.thermostat),
+		80
+	);
+    }
+
+    if(vv_thermostat_get_actual_state(vv_display.temperature_controller.thermostat)) {
+        char *str = "Heating";
+	bc_module_lcd_set_font(&bc_font_ubuntu_15);    
+	bc_module_lcd_draw_string(_left_intend_to_center(str, 7), 113, str, true); 	
+    }
 }
 
 void vv_display_blink_red() {
@@ -227,11 +235,13 @@ void vv_display_render() {
 
 void vv_display_next_page() {
     vv_display.actual_data_index = (vv_display.actual_data_index + 1) % VV_PAGES_COUNT;
+    vv_display_render();
 }
 
 void vv_display_prev_page() {
     vv_display.actual_data_index--;
     if(vv_display.actual_data_index < 0)  vv_display.actual_data_index = VV_PAGES_COUNT - 1;    
+    vv_display_render();
 }
 
 void vv_display_push_new_value(uint8_t index, float_t new_value) {
@@ -239,5 +249,19 @@ void vv_display_push_new_value(uint8_t index, float_t new_value) {
 	vv_display.actual_data[index].values[i] = vv_display.actual_data[index].values[i + 1];
     }
     vv_display.actual_data[index].values[VV_VALUES_COUNT - 1] = new_value;
+    vv_display_render();
+}
+
+
+void vv_display_set_values(const char* location, const char* name, const char* value) {
+    strncpy(vv_display.actual_data[0].location, location, 10);
+    strncpy(vv_display.actual_data[0].name, name, 10);
+
+    for(uint8_t i = 0; i < VV_DATA_COUNT; i++) { 
+	if(strncmp(vv_display.actual_data[i].location, location, 30) &&
+		strncmp(vv_display.actual_data[i].name, name, 30)) {
+	    vv_display_push_new_value(i, atof(value));
+	}
+    }
 }
 

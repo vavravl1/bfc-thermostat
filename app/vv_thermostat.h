@@ -11,12 +11,16 @@ struct vv_thermostat_self {
     float actual_value;
     float reference_value;
     bool actual_state;
+    bool local_controll;
 } vv_thermostat;
 
 void vv_thermostat_init();
 
 bool vv_thermostat_get_actual_state(struct vv_thermostat_self *self);
 void vv_thermostat_set_actual_state(struct vv_thermostat_self *self, bool new_state);
+
+bool vv_thermostat_is_local_controll(struct vv_thermostat_self *self);
+void vv_thermostat_set_local_controll(struct vv_thermostat_self *self, bool new_state);
 
 float* vv_thermostat_get_actual_value(struct vv_thermostat_self *self);
 void vv_thermostat_set_actual_value(struct vv_thermostat_self *self, float* new_actual_value);

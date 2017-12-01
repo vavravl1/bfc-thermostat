@@ -153,13 +153,9 @@ void application_init(void)
     vv_radio_listening_init();
     vv_thermostat_init(&relay_0_0);
     vv_display_init(&vv_thermostat);
-    //vv_night_light_init(&lux_meter_1_0);
 }
 
-void application_task(void)
-{
-    vv_display_render();
-}
+void application_task(void) { }
 
 static void temperature_tag_init(bc_i2c_channel_t i2c_channel, bc_tag_temperature_i2c_address_t i2c_address, temperature_tag_t *tag)
 {
@@ -259,17 +255,16 @@ void lcd_button_event_handler(bc_button_t *self, bc_button_event_t event, void *
 {
     (void) event_param;
 
-    if (event != BC_BUTTON_EVENT_CLICK)
-    {
-        return;
-    }
-
-    if (self->_channel.virtual_channel == BC_MODULE_LCD_BUTTON_LEFT) {
-	vv_display_prev_page();
-    } else if(self->_channel.virtual_channel == BC_MODULE_LCD_BUTTON_RIGHT) {
-	vv_display_next_page();	
-    } else {
-	return;
+    if(event == BC_BUTTON_EVENT_HOLD) {
+	vv_thermostat_set_local_controll(&vv_thermostat, !vv_thermostat_is_local_controll(&vv_thermostat));
+    } else if (event == BC_BUTTON_EVENT_CLICK) {
+	if (self->_channel.virtual_channel == BC_MODULE_LCD_BUTTON_LEFT) {
+	    vv_display_prev_page();
+	} else if(self->_channel.virtual_channel == BC_MODULE_LCD_BUTTON_RIGHT) {
+	    vv_display_next_page();	
+	} else {
+	    return;
+	}
     }
 
 //        static uint16_t left_event_count = 0;
@@ -437,7 +432,8 @@ void bc_radio_on_buffer(uint64_t *peer_device_address, uint8_t *buffer, size_t *
             {
                 return;
             }
-            bc_module_relay_set_state(buffer[0] == RADIO_RELAY_0_SET ? &relay_0_0 : &relay_0_1, buffer[sizeof(uint64_t) + 1]);
+//            bc_module_relay_set_state(buffer[0] == RADIO_RELAY_0_SET ? &relay_0_0 : &relay_0_1, buffer[sizeof(uint64_t) + 1]);
+	    vv_thermostat_set_actual_state(&vv_thermostat, buffer[sizeof(uint64_t) + 1]);
             _radio_pub_state(buffer[0] == RADIO_RELAY_0_SET ? RADIO_RELAY_0 : RADIO_RELAY_1, buffer[sizeof(uint64_t) + 1]);
             break;
         }
@@ -481,8 +477,15 @@ void bc_radio_on_buffer(uint64_t *peer_device_address, uint8_t *buffer, size_t *
 	case VV_RADIO_THERMOSTAT:
 	{
 	    vv_radio_parse_incoming_buffer(length, buffer);
+            //bc_led_pulse(&led, 1000);	    
 	    break;
 	}
+	case JSON_RADIO_TYPE:
+	{
+	    json_radio_parse_incoming_buffer(buffer);
+            bc_led_pulse(&led, 1000);	    
+	    break;
+	}	
         default:
         {
             break;

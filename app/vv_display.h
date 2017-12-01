@@ -37,6 +37,8 @@ void vv_display_next_page();
 void vv_display_prev_page();
 
 void vv_display_push_new_value(uint8_t index, float new_value);
+void vv_display_set_values(const char* location, const char* name, const char* value);
+
 
 void vv_display_set_actual_value(float new_actual_value);
 void vv_display_set_reference_value(float new_reference_value);

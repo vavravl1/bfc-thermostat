@@ -4,6 +4,8 @@
 
 #include <bc_common.h>
 #include <bcl.h>
+#include <jsmn.h>
+
 
 #define VV_RADIO_THERMOSTAT 0xf0
 
@@ -22,8 +24,17 @@
 #define VV_RADIO_NEW_VAL          (VV_RADIO_DATA_TYPE_INDEX + sizeof(uint8_t))
 #define VV_RADIO_MESSAGE_SIZE     (VV_RADIO_NEW_VAL + sizeof(float))
 
+#define JSON_RADIO_TYPE           0xf1
+#define JSON_RADIO_TYPE_POS       (0)
+#define JSON_RADIO_ADDRESS_POS    (JSON_RADIO_TYPE_POS + sizeof(uint8_t))
+#define JSON_RADIO_SIZE_POS       (JSON_RADIO_ADDRESS_POS + sizeof(uint64_t))
+#define JSON_RADIO_VALUE_POS      (JSON_RADIO_SIZE_POS + sizeof(size_t))
+
 void vv_radio_listening_init();
 void vv_radio_parse_incoming_buffer(size_t *length, uint8_t *buffer);
 void vv_radio_send_update(uint64_t *device_address, uint8_t data_type_index, float *new_val);
+
+
+bool json_radio_parse_incoming_buffer(uint8_t *buffer);
 
 #endif
