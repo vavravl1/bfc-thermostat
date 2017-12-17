@@ -1,7 +1,7 @@
 #include <application.h>
 #include <radio.h>
 
-#include "vv_radio.h"
+#include "vv_radio_thermostat.h"
 #include "vv_display.h"
 #include "vv_thermostat.h"
 
@@ -474,18 +474,13 @@ void bc_radio_on_buffer(uint64_t *peer_device_address, uint8_t *buffer, size_t *
             _radio_pub_state(RADIO_RELAY_POWER, bc_module_power_relay_get_state());
             break;
         }
-	case VV_RADIO_THERMOSTAT:
+	case VV_RADIO_SINGLE_FLOAT:
 	{
-	    vv_radio_parse_incoming_buffer(length, buffer);
-            //bc_led_pulse(&led, 1000);	    
+	    struct vv_radio_single_float_packet packet;
+	    vv_radio_parse_incoming_buffer(length, buffer, &packet);
+	    process_incoming_packet(&packet);
 	    break;
 	}
-	case JSON_RADIO_TYPE:
-	{
-	    json_radio_parse_incoming_buffer(buffer);
-            bc_led_pulse(&led, 1000);	    
-	    break;
-	}	
         default:
         {
             break;
