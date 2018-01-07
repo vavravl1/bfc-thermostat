@@ -5,7 +5,7 @@
 #include "vv_radio.h"
 
 void vv_radio_listening_init();
-void process_incoming_packet(struct vv_radio_single_float_packet *packet);
+void process_incoming_packet(struct vv_radio_string_string_packet *packet);
 
 #endif
 
