@@ -9,6 +9,14 @@
 #define VV_DATA_COUNT 6
 #define VV_VALUES_COUNT 15
 
+#define VV_DATA_TYPE_L1_POWER 0
+#define VV_DATA_TYPE_FVE_POWER 1
+#define VV_DATA_TYPE_TEMPERATURE_LIVING_ROOM 2
+#define VV_DATA_TYPE_TEMPERATURE_TERRACE 3
+#define VV_DATA_TYPE_TEMPERATURE_BEDROOM 4
+#define VV_DATA_TYPE_CO2 5
+#define VV_DATA_TYPE_THERMOSTAT_REFERENCE_VALUE 6
+
 struct display_data {
     char* name;
     char* location;
