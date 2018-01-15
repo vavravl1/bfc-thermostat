@@ -1,4 +1,4 @@
-#include <sensors.h>
+#include "sensors.h"
 #include <bc_radio_pub.h>
 
 #include "vv_thermostat.h"
