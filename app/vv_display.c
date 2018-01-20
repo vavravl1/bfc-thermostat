@@ -40,8 +40,8 @@ void _draw_value(char *format, const float *value, uint8_t top) {
 }
 
 void _draw_graph(vv_display_data_t *data) {
-    float min = * data -> max_value;
-    float max = * data -> min_value;
+    float min = * data -> min_value;
+    float max = * data -> max_value;
 
     float x;
     float y;
