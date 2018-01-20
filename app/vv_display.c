@@ -8,6 +8,7 @@
 #define _VV_GRAPH_SIDE 10
 
 void _vv_display_init_single_data(int page_index, int data_index, char *name, char *location, char *format);
+void _vv_display_set_min_max(uint8_t data_index);
 
 int _left_intend_to_center(char *str, uint8_t char_size) {
     return (int)fmax(1, (128 - strlen(str) * char_size) / 2);
@@ -214,11 +215,17 @@ void vv_display_push_new_value(uint8_t index, float_t new_value) {
         vv_display.data[index].values[i] = vv_display.data[index].values[i + 1];
     }
     vv_display.data[index].values[VV_VALUES_COUNT - 1] = new_value;
-    if(new_value > * vv_display.data[index].max_value) {
-        vv_display.data[index].max_value = &vv_display.data[index].values[VV_VALUES_COUNT - 1];
-    }
-    if(new_value < * vv_display.data[index].min_value) {
-        vv_display.data[index].min_value = &vv_display.data[index].values[VV_VALUES_COUNT - 1];
-    }
+    _vv_display_set_min_max(index);
     vv_display_render();
+}
+
+void _vv_display_set_min_max(uint8_t data_index) {
+    for (uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
+        if (vv_display.data[data_index].values[i] > *vv_display.data[data_index].max_value) {
+            vv_display.data[data_index].max_value = &vv_display.data[data_index].values[i];
+        }
+        if (vv_display.data[data_index].values[i] < *vv_display.data[data_index].min_value) {
+            vv_display.data[data_index].min_value = &vv_display.data[data_index].values[i];
+        }
+    }
 }
