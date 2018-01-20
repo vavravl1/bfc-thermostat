@@ -5,8 +5,10 @@
 #include <bc_common.h>
 #include <bcl.h>
 
-#define VV_PAGES_COUNT (VV_DATA_COUNT + 1)
 #define VV_DATA_COUNT 6
+#define VV_CONTROLLERS_COUNT 1
+
+#define VV_PAGES_COUNT (VV_DATA_COUNT + 1)
 #define VV_VALUES_COUNT 15
 
 #define VV_DATA_TYPE_L1_POWER 0
@@ -33,18 +35,19 @@ struct vv_display_controller_t {
 };
 typedef struct vv_display_controller_t vv_display_controller_t;
 
-struct vv_display_page {
-
+struct vv_display_page_t {
+    vv_display_data_t *data;
+    vv_display_controller_t *controller;
 };
-
-typedef struct vv_display_page vv_display_page;
+typedef struct vv_display_page_t vv_display_page_t;
 
 struct vv_display_self {
-    int8_t actual_data_index;
+    int8_t actual_page_index;
     bc_led_t green_led;
     bc_led_t red_led;
-    vv_display_data_t actual_data[VV_DATA_COUNT];
-    vv_display_controller_t temperature_controller;
+    vv_display_data_t data[VV_DATA_COUNT];
+    vv_display_controller_t controllers[VV_CONTROLLERS_COUNT];
+    vv_display_page_t pages[VV_DATA_COUNT + VV_CONTROLLERS_COUNT];
 } vv_display;
 
 void vv_display_init(struct vv_thermostat_self* _thermostat);
