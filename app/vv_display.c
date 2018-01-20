@@ -221,6 +221,8 @@ void vv_display_push_new_value(uint8_t index, float_t new_value) {
 
 void _vv_display_set_min_max(uint8_t data_index) {
     for (uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
+        vv_display.data[data_index].max_value = &vv_display.data[data_index].values[0];
+        vv_display.data[data_index].min_value = &vv_display.data[data_index].values[0];
         if (vv_display.data[data_index].values[i] > *vv_display.data[data_index].max_value) {
             vv_display.data[data_index].max_value = &vv_display.data[data_index].values[i];
         }

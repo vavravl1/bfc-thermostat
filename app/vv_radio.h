@@ -8,10 +8,6 @@
 #define VV_RADIO_SINGLE_FLOAT 0xf0
 #define VV_RADIO_STRING_STRING 0xf1
 
-#define VV_RADIO_DATA_TYPE_WATERING_HUMIDTY 7
-#define VV_RADIO_DATA_TYPE_WATERING_PUMP 8
-#define VV_RADIO_DATA_TYPE_WATERING_WATER_LEVEL 9
-
 // [BUFFER_TYPE NODE_ADDRESS DATA_TYPE NEW_VALUE]
 #define VV_RADIO_TYPE             (0)
 #define VV_RADIO_ADDRESS          (VV_RADIO_TYPE + sizeof(uint8_t))
@@ -48,7 +44,7 @@ void vv_radio_parse_incoming_buffer(size_t length, uint8_t *buffer, struct vv_ra
 void vv_radio_send_update(struct vv_radio_single_float_packet *source);
 
 
-void vv_radio_parse_incoming_string_buffer(size_t length, uint8_t *buffer, struct vv_radio_string_string_packet *target);
+bool vv_radio_parse_incoming_string_buffer(size_t length, const uint8_t *buffer, struct vv_radio_string_string_packet *target);
 void vv_radio_send_string(struct vv_radio_string_string_packet *source);
 
 #endif

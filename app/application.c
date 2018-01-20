@@ -87,7 +87,7 @@ void application_init(void) {
     bc_module_encoder_set_event_handler(encoder_event_handler, NULL);
 
     vv_radio_listening_init();
-    vv_thermostat_init(&relay_0_0);
+    vv_thermostat_init();
     vv_display_init(&vv_thermostat);
 }
 
@@ -141,12 +141,12 @@ static void radio_event_handler(bc_radio_event_t event, void *event_param) {
     }
 }
 
-void bc_radio_pub_on_buffer(uint64_t *peer_device_address, uint8_t *buffer, size_t *length) {
+void bc_radio_pub_on_buffer(uint64_t *peer_device_address, uint8_t *buffer, size_t length) {
     switch (buffer[0]) {
 
         case RADIO_RELAY_0_SET:
         case RADIO_RELAY_1_SET: {
-            if (*length != (1 + sizeof(uint64_t) + 1)) {
+            if (length != (1 + sizeof(uint64_t) + 1)) {
                 return;
             }
             bc_module_relay_set_state(buffer[0] == RADIO_RELAY_0_SET ? &relay_0_0 : &relay_0_1,
@@ -158,12 +158,10 @@ void bc_radio_pub_on_buffer(uint64_t *peer_device_address, uint8_t *buffer, size
         }
         case VV_RADIO_STRING_STRING: {
             struct vv_radio_string_string_packet packet;
-            memcpy(&packet.device_address, buffer + VV_RADIO_ADDRESS, sizeof(uint64_t));
-            memcpy(&packet.key, buffer + VV_RADIO_STRING_KEY, VV_RADIO_STRING_KEY_SIZE);
-            memcpy(&packet.value, buffer + VV_RADIO_STRING_VALUE, VV_RADIO_STRING_VALUE_SIZE);
-
-            if (packet.device_address == my_id) {
-                process_incoming_packet(&packet);
+            if(vv_radio_parse_incoming_string_buffer(length, buffer, &packet)) {
+                if (packet.device_address == my_id) {
+                    process_incoming_packet(&packet);
+                }
             }
             break;
         }
