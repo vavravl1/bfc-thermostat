@@ -17,31 +17,30 @@
 #define VV_DATA_TYPE_TEMPERATURE_TERRACE 3
 #define VV_DATA_TYPE_TEMPERATURE_BEDROOM 4
 #define VV_DATA_TYPE_CO2 5
-#define VV_DATA_TYPE_THERMOSTAT_REFERENCE_VALUE 6
 
 struct vv_display_data_t {
-    char* name;
-    char* location;
-    char *format;
     float values[VV_VALUES_COUNT];
+    float *min_value;
+    float *max_value;
 };
 typedef struct vv_display_data_t vv_display_data_t;
 
 struct vv_display_controller_t {
-    char* name;
-    char* location;
-    char *format;
     struct vv_thermostat_self* thermostat;
 };
 typedef struct vv_display_controller_t vv_display_controller_t;
 
 struct vv_display_page_t {
+    char* name;
+    char* location;
+    char *format;
+
     vv_display_data_t *data;
     vv_display_controller_t *controller;
 };
 typedef struct vv_display_page_t vv_display_page_t;
 
-struct vv_display_self {
+struct {
     int8_t actual_page_index;
     bc_led_t green_led;
     bc_led_t red_led;

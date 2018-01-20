@@ -7,39 +7,31 @@
 #define _VV_GRAPH_BOTTOM 110
 #define _VV_GRAPH_SIDE 10
 
-float _find_min(float *values, size_t count) {
-    float min = 10e10;
-    for (uint8_t i = 0; i < count; i++) {
-        if (min > values[i]) {
-            min = values[i];
-        }
-    }
-    return min;
-}
-
-float _find_max(float *values, size_t count) {
-    float max = -10e10;
-    for (uint8_t i = 0; i < count; i++) {
-        if (max < values[i]) {
-            max = values[i];
-        }
-    }
-    return max;
-}
+void _vv_display_init_single_data(int page_index, int data_index, char *name, char *location, char *format);
 
 int _left_intend_to_center(char *str, uint8_t char_size) {
-    return fmax(1, (128 - strlen(str) * char_size) / 2);
+    return (int)fmax(1, (128 - strlen(str) * char_size) / 2);
 }
 
-void _draw_header(char *name, char *location) {
+void _draw_header(struct vv_display_page_t *page) {
     bc_module_lcd_set_font(&bc_font_ubuntu_15);
-    bc_module_lcd_draw_string(_left_intend_to_center(name, 7), 5, name, true);
+    bc_module_lcd_draw_string(
+            _left_intend_to_center(page -> name, 7),
+            5,
+            page -> name,
+            true
+    );
 
     bc_module_lcd_set_font(&bc_font_ubuntu_24);
-    bc_module_lcd_draw_string(_left_intend_to_center(location, 11), 20, location, true);
+    bc_module_lcd_draw_string(
+            _left_intend_to_center(page -> location, 11),
+            20,
+            page -> location,
+            true
+    );
 }
 
-void _draw_value(char *format, float *value, uint8_t top) {
+void _draw_value(char *format, const float *value, uint8_t top) {
     char str[32];
     bc_module_lcd_set_font(&bc_font_ubuntu_33);
     snprintf(str, sizeof(str), format, *value);
@@ -47,9 +39,9 @@ void _draw_value(char *format, float *value, uint8_t top) {
     bc_module_lcd_draw_string(_left_intend_to_center(str, 14), top, str, true);
 }
 
-void _draw_graph(float *values) {
-    float min = _find_min(values, VV_VALUES_COUNT);
-    float max = _find_max(values, VV_VALUES_COUNT);
+void _draw_graph(vv_display_data_t *data) {
+    float min = * data -> max_value;
+    float max = * data -> min_value;
 
     float x;
     float y;
@@ -75,11 +67,11 @@ void _draw_graph(float *values) {
 
     int left_step = (128 - (2 * _VV_GRAPH_SIDE)) / VV_VALUES_COUNT;
 
-    int last_top = x * values[0] + y;
+    int last_top = (int)(x * (data -> values[0]) + y);
     int last_left = _VV_GRAPH_SIDE;
 
     for (uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
-        int top = (int) (x * values[i] + y);
+        int top = (int) (x * (data -> values[i]) + y);
         int left = _VV_GRAPH_SIDE + left_step * i;
 
         bc_module_lcd_set_font(&bc_font_ubuntu_11);
@@ -91,14 +83,14 @@ void _draw_graph(float *values) {
     }
 }
 
-void _draw_footer(char *format, float *values) {
-    float max = _find_max(values, VV_VALUES_COUNT);
+void _draw_footer(vv_display_page_t *page) {
+    float max = * page -> data -> max_value;
     char max_str[8];
-    snprintf(max_str, sizeof(max_str), format, max);
+    snprintf(max_str, sizeof(max_str), page -> format, max);
 
-    float min = _find_min(values, VV_VALUES_COUNT);
+    float min = * page -> data -> min_value;
     char min_str[8];
-    snprintf(min_str, sizeof(min_str), format, min);
+    snprintf(min_str, sizeof(min_str), page -> format, min);
 
     char str[64];
     snprintf(str, sizeof(str), "%s / %s", min_str, max_str);
@@ -108,37 +100,26 @@ void _draw_footer(char *format, float *values) {
 }
 
 void _draw_data(vv_display_page_t *page) {
-    _draw_header(
-            page -> data -> name,
-            page -> data -> location
-    );
+    _draw_header(page);
     _draw_value(
-            page -> data -> format,
+            page -> format,
             page -> data -> values + VV_VALUES_COUNT - 1, // Draw last element of array
             45
     );
-    _draw_graph(
-            page -> data -> values
-    );
-    _draw_footer(
-            page -> data -> format,
-            page -> data -> values
-    );
+    _draw_graph(page -> data);
+    _draw_footer(page);
 }
 
 void _draw_controller(vv_display_page_t *page) {
-    _draw_header(
-            page -> controller -> name,
-            page -> controller -> location
-    );
+    _draw_header(page);
     _draw_value(
-            page -> controller -> format,
+            page -> format,
             vv_thermostat_get_actual_value(page -> controller -> thermostat),
             45
     );
     if (vv_thermostat_is_local_controll(page -> controller -> thermostat)) {
         _draw_value(
-                page -> controller -> format,
+                page -> format,
                 vv_thermostat_get_reference_value(page -> controller -> thermostat),
                 80
         );
@@ -162,69 +143,41 @@ void vv_display_blink_green() {
 void vv_display_init(struct vv_thermostat_self *_thermostat) {
     vv_display.actual_page_index = 0;
 
-    vv_display.data[VV_DATA_TYPE_L1_POWER].name = "L1 power [kW]";
-    vv_display.data[VV_DATA_TYPE_L1_POWER].location = "House";
-    vv_display.data[VV_DATA_TYPE_L1_POWER].format = "%.2f";
-    for (uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
-        vv_display.data[VV_DATA_TYPE_L1_POWER].values[i] = 0;
-    }
-    vv_display.pages[0].data = &vv_display.data[VV_DATA_TYPE_L1_POWER];
-    vv_display.pages[0].controller = NULL;
+    _vv_display_init_single_data(0, VV_DATA_TYPE_L1_POWER, "L1 power [kW]", "House", "%.2f");
+    _vv_display_init_single_data(1, VV_DATA_TYPE_FVE_POWER, "Fve power [W]", "House", "%.0f");
+    _vv_display_init_single_data(2, VV_DATA_TYPE_TEMPERATURE_LIVING_ROOM, "Temperature [\xb0]", "Living room", "%.2f");
+    _vv_display_init_single_data(3, VV_DATA_TYPE_TEMPERATURE_TERRACE, "Temperature [\xb0]", "Terrace", "%.2f");
+    _vv_display_init_single_data(4, VV_DATA_TYPE_TEMPERATURE_BEDROOM, "Temperature [\xb0]", "Bedroom", "%.2f");
+    _vv_display_init_single_data(5, VV_DATA_TYPE_CO2, "CO2 [ppm]", "    Bedroom", "%.0f");
 
-    vv_display.data[VV_DATA_TYPE_FVE_POWER].name = "Fve power [W]";
-    vv_display.data[VV_DATA_TYPE_FVE_POWER].location = "House";
-    vv_display.data[VV_DATA_TYPE_FVE_POWER].format = "%.0f";
-    for (uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
-        vv_display.data[VV_DATA_TYPE_FVE_POWER].values[i] = 0;
-    }
-    vv_display.pages[1].data = &vv_display.data[VV_DATA_TYPE_FVE_POWER];
-    vv_display.pages[1].controller = NULL;
-
-    vv_display.data[VV_DATA_TYPE_TEMPERATURE_LIVING_ROOM].name = "Temperature [\xb0]";
-    vv_display.data[VV_DATA_TYPE_TEMPERATURE_LIVING_ROOM].location = "Living room";
-    vv_display.data[VV_DATA_TYPE_TEMPERATURE_LIVING_ROOM].format = "%.2f";
-    for (uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
-        vv_display.data[VV_DATA_TYPE_TEMPERATURE_LIVING_ROOM].values[i] = 0;
-    }
-    vv_display.pages[2].data = &vv_display.data[VV_DATA_TYPE_TEMPERATURE_LIVING_ROOM];
-    vv_display.pages[2].controller = NULL;
-
-    vv_display.data[VV_DATA_TYPE_TEMPERATURE_TERRACE].name = "Temperature [\xb0]";
-    vv_display.data[VV_DATA_TYPE_TEMPERATURE_TERRACE].location = "Terrace";
-    vv_display.data[VV_DATA_TYPE_TEMPERATURE_TERRACE].format = "%.2f";
-    for (uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
-        vv_display.data[VV_DATA_TYPE_TEMPERATURE_TERRACE].values[i] = 0;
-    }
-    vv_display.pages[3].data = &vv_display.data[VV_DATA_TYPE_TEMPERATURE_TERRACE];
-    vv_display.pages[3].controller = NULL;
-
-    vv_display.data[VV_DATA_TYPE_TEMPERATURE_BEDROOM].name = "Temperature [\xb0]";
-    vv_display.data[VV_DATA_TYPE_TEMPERATURE_BEDROOM].location = "Bedroom";
-    vv_display.data[VV_DATA_TYPE_TEMPERATURE_BEDROOM].format = "%.2f";
-    for (uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
-        vv_display.data[VV_DATA_TYPE_TEMPERATURE_BEDROOM].values[i] = 0;
-    }
-    vv_display.pages[4].data = &vv_display.data[VV_DATA_TYPE_TEMPERATURE_BEDROOM];
-    vv_display.pages[4].controller = NULL;
-
-    vv_display.data[VV_DATA_TYPE_CO2].name = "CO2 [ppm]";
-    vv_display.data[VV_DATA_TYPE_CO2].location = "    Bedroom";
-    vv_display.data[VV_DATA_TYPE_CO2].format = "%.0f";
-    for (uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
-        vv_display.data[VV_DATA_TYPE_CO2].values[i] = 0;
-    }
-    vv_display.pages[5].data = &vv_display.data[VV_DATA_TYPE_CO2];
-    vv_display.pages[5].controller = NULL;
-
-    vv_display.controllers[0].name = "Heating [\xb0]";
-    vv_display.controllers[0].location = "Home  ";
-    vv_display.controllers[0].format = "%.2f";
+    vv_display.pages[6].name = "Heating [\xb0]";
+    vv_display.pages[6].location = "Home  ";
+    vv_display.pages[6].format = "%.2f";
     vv_display.controllers[0].thermostat = _thermostat;
     vv_display.pages[6].data = NULL;
     vv_display.pages[6].controller = &vv_display.controllers[0];
 
     bc_led_init_virtual(&vv_display.green_led, BC_MODULE_LCD_LED_GREEN, bc_module_lcd_get_led_driver(), 1);
     bc_led_init_virtual(&vv_display.red_led, BC_MODULE_LCD_LED_RED, bc_module_lcd_get_led_driver(), 1);
+}
+
+void _vv_display_init_single_data(
+        int page_index,
+        int data_index,
+        char *name,
+        char *location,
+        char *format
+) {
+    vv_display.pages[page_index].name = name;
+    vv_display.pages[page_index].location = location;
+    vv_display.pages[page_index].format = format;
+    for (uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
+        vv_display.data[data_index].values[i] = 0;
+    }
+    vv_display.data[data_index].min_value = 0;
+    vv_display.data[data_index].max_value = 0;
+    vv_display.pages[page_index].data = &vv_display.data[data_index];
+    vv_display.pages[page_index].controller = NULL;
 }
 
 void vv_display_render() {
@@ -246,7 +199,7 @@ void vv_display_render() {
 }
 
 void vv_display_next_page() {
-    vv_display.actual_page_index = (vv_display.actual_page_index + 1) % VV_PAGES_COUNT;
+    vv_display.actual_page_index = (int8_t)((vv_display.actual_page_index + 1) % VV_PAGES_COUNT);
     vv_display_render();
 }
 
@@ -261,5 +214,11 @@ void vv_display_push_new_value(uint8_t index, float_t new_value) {
         vv_display.data[index].values[i] = vv_display.data[index].values[i + 1];
     }
     vv_display.data[index].values[VV_VALUES_COUNT - 1] = new_value;
+    if(new_value > * vv_display.data[index].max_value) {
+        vv_display.data[index].max_value = &vv_display.data[index].values[VV_VALUES_COUNT - 1];
+    }
+    if(new_value < * vv_display.data[index].min_value) {
+        vv_display.data[index].min_value = &vv_display.data[index].values[VV_VALUES_COUNT - 1];
+    }
     vv_display_render();
 }
