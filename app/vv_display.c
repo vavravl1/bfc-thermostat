@@ -144,12 +144,12 @@ void vv_display_blink_green() {
 void vv_display_init(struct vv_thermostat_self *_thermostat) {
     vv_display.actual_page_index = 0;
 
-    _vv_display_init_single_data(0, VV_DATA_TYPE_L1_POWER, "L1 power [kW]", "House", "%.2f");
-    _vv_display_init_single_data(1, VV_DATA_TYPE_FVE_POWER, "Fve power [W]", "House", "%.0f");
+    _vv_display_init_single_data(0, VV_DATA_TYPE_L1_POWER, "L1 power [kW]", "House  ", "%.2f");
+    _vv_display_init_single_data(1, VV_DATA_TYPE_FVE_POWER, "Fve power [W]", "House  ", "%.0f");
     _vv_display_init_single_data(2, VV_DATA_TYPE_TEMPERATURE_LIVING_ROOM, "Temperature [\xb0]", "Living room", "%.2f");
     _vv_display_init_single_data(3, VV_DATA_TYPE_TEMPERATURE_TERRACE, "Temperature [\xb0]", "Terrace", "%.2f");
-    _vv_display_init_single_data(4, VV_DATA_TYPE_TEMPERATURE_BEDROOM, "Temperature [\xb0]", "Bedroom", "%.2f");
-    _vv_display_init_single_data(5, VV_DATA_TYPE_CO2, "CO2 [ppm]", "    Bedroom", "%.0f");
+    _vv_display_init_single_data(4, VV_DATA_TYPE_TEMPERATURE_BEDROOM, "Temperature [\xb0]", " Bedroom  ", "%.2f");
+    _vv_display_init_single_data(5, VV_DATA_TYPE_CO2, "CO2 [ppm]", " Bedroom  ", "%.0f");
 
     vv_display.pages[6].name = "Heating [\xb0]";
     vv_display.pages[6].location = "Home  ";
