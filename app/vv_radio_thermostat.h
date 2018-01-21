@@ -2,6 +2,8 @@
 #ifndef VV_RADIO_THERMOSTAT_H
 #define VV_RADIO_THERMOSTAT_H
 
+#define VV_RADIO_THERMOSTAT_POWER_SAVE (false)
+
 #include "vv_radio.h"
 
 void vv_radio_listening_init();

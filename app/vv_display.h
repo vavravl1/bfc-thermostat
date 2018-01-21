@@ -20,8 +20,8 @@
 
 struct vv_display_data_t {
     float values[VV_VALUES_COUNT];
-    float *min_value;
-    float *max_value;
+    float min_value;
+    float max_value;
 };
 typedef struct vv_display_data_t vv_display_data_t;
 

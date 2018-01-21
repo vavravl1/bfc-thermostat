@@ -38,18 +38,25 @@ void process_incoming_packet(struct vv_radio_string_string_packet *packet) {
 }
 
 void vv_radio_listening_init() {
+#if !VV_RADIO_THERMOSTAT_POWER_SAVE
+    bc_radio_listen();
+#endif
     _vv_radio_listen_task_id = bc_scheduler_register(_vv_radio_listen_task, NULL, 0);
     _vv_radio_sleep_task_id = bc_scheduler_register(_vv_radio_sleep_task, NULL, BC_TICK_INFINITY);
 }
 
 void _vv_radio_listen_task() {
+#if VV_RADIO_THERMOSTAT_POWER_SAVE
     bc_radio_listen();
+#endif
     uint16_t one = 1;
     bc_radio_pub_push_button(&one);
     bc_scheduler_plan_relative(_vv_radio_sleep_task_id, 1000);    
 }
 
 void _vv_radio_sleep_task() {
-    bc_radio_sleep();    
+#if VV_RADIO_THERMOSTAT_POWER_SAVE
+    bc_radio_sleep();
+#endif
     bc_scheduler_plan_relative(_vv_radio_listen_task_id, 10000);    
 }

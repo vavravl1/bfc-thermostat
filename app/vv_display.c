@@ -41,8 +41,8 @@ void _draw_value(char *format, const float *value, uint8_t top) {
 }
 
 void _draw_graph(vv_display_data_t *data) {
-    float min = * data -> min_value;
-    float max = * data -> max_value;
+    float min = data -> min_value;
+    float max = data -> max_value;
 
     float x;
     float y;
@@ -85,11 +85,11 @@ void _draw_graph(vv_display_data_t *data) {
 }
 
 void _draw_footer(vv_display_page_t *page) {
-    float max = * page -> data -> max_value;
+    float max = page -> data -> max_value;
     char max_str[8];
     snprintf(max_str, sizeof(max_str), page -> format, max);
 
-    float min = * page -> data -> min_value;
+    float min = page -> data -> min_value;
     char min_str[8];
     snprintf(min_str, sizeof(min_str), page -> format, min);
 
@@ -220,14 +220,15 @@ void vv_display_push_new_value(uint8_t index, float_t new_value) {
 }
 
 void _vv_display_set_min_max(uint8_t data_index) {
+    vv_display.data[data_index].max_value = vv_display.data[data_index].values[0];
+    vv_display.data[data_index].min_value = vv_display.data[data_index].values[0];
+
     for (uint8_t i = 0; i < VV_VALUES_COUNT; i++) {
-        vv_display.data[data_index].max_value = &vv_display.data[data_index].values[0];
-        vv_display.data[data_index].min_value = &vv_display.data[data_index].values[0];
-        if (vv_display.data[data_index].values[i] > *vv_display.data[data_index].max_value) {
-            vv_display.data[data_index].max_value = &vv_display.data[data_index].values[i];
+        if (vv_display.data[data_index].values[i] > vv_display.data[data_index].max_value) {
+            vv_display.data[data_index].max_value = vv_display.data[data_index].values[i];
         }
-        if (vv_display.data[data_index].values[i] < *vv_display.data[data_index].min_value) {
-            vv_display.data[data_index].min_value = &vv_display.data[data_index].values[i];
+        if (vv_display.data[data_index].values[i] < vv_display.data[data_index].min_value) {
+            vv_display.data[data_index].min_value = vv_display.data[data_index].values[i];
         }
     }
 }
