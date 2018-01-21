@@ -89,6 +89,7 @@ void application_init(void) {
     vv_radio_listening_init();
     vv_thermostat_init();
     vv_display_init(&vv_thermostat);
+    vv_blind_init();
 }
 
 void application_task(void) {}
