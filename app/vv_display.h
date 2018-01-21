@@ -5,10 +5,10 @@
 #include <bc_common.h>
 #include <bcl.h>
 
-#define VV_DATA_COUNT 6
+#define VV_DATA_COUNT 7
 #define VV_CONTROLLERS_COUNT 1
 
-#define VV_PAGES_COUNT (VV_DATA_COUNT + 1)
+#define VV_PAGES_COUNT (VV_DATA_COUNT + VV_CONTROLLERS_COUNT)
 #define VV_VALUES_COUNT 15
 
 #define VV_DATA_TYPE_L1_POWER 0
@@ -17,6 +17,7 @@
 #define VV_DATA_TYPE_TEMPERATURE_TERRACE 3
 #define VV_DATA_TYPE_TEMPERATURE_BEDROOM 4
 #define VV_DATA_TYPE_CO2 5
+#define VV_DATA_TYPE_LOCAL_TEMPERATURE 6
 
 struct vv_display_data_t {
     float values[VV_VALUES_COUNT];
@@ -49,7 +50,7 @@ struct {
     vv_display_page_t pages[VV_DATA_COUNT + VV_CONTROLLERS_COUNT];
 } vv_display;
 
-void vv_display_init(struct vv_thermostat_self* _thermostat);
+void vv_display_init();
 void vv_display_render();
 void vv_display_next_page();
 void vv_display_prev_page();

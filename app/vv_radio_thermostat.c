@@ -1,7 +1,6 @@
 
 #include "vv_radio_thermostat.h"
 #include "vv_display.h"
-#include "vv_thermostat.h"
 #include "vv_blind_controll.h"
 
 void _vv_radio_listen_task();
@@ -24,8 +23,6 @@ void process_incoming_packet(struct vv_radio_string_string_packet *packet) {
     } else if(strncmp(packet->key, "co2", 3) == 0) {
         vv_display_push_new_value(VV_DATA_TYPE_CO2, atof(packet -> value));
     } else if(strncmp(packet->key, "thermo", 6) == 0) {
-        float new_ref_val = atof(packet -> value);
-        vv_thermostat_set_reference_value(&vv_thermostat, &new_ref_val);
     } else if(strncmp(packet->key, "blind", 8) == 0) {
         if(strncmp(packet -> value, "up", 2) == 0) {
             vv_blind_go_up();

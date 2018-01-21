@@ -1,7 +1,6 @@
 #include "sensors.h"
+#include "vv_display.h"
 #include <bc_radio_pub.h>
-
-#include "vv_thermostat.h"
 
 void sensors_init_all()
 {
@@ -78,13 +77,10 @@ static void temperature_tag_event_handler(bc_tag_temperature_t *self, bc_tag_tem
 
     if (bc_tag_temperature_get_temperature_celsius(self, &value))
     {
-        if ((fabs(value - param->value) >= TEMPERATURE_TAG_PUB_VALUE_CHANGE) || (param->next_pub < bc_scheduler_get_spin_tick()))
-        {
-	    bc_radio_pub_temperature(param->channel, &value);
-	    vv_thermostat_set_actual_value(&vv_thermostat, &value);
-            param->value = value;
-            param->next_pub = bc_scheduler_get_spin_tick() + TEMPERATURE_TAG_PUB_NO_CHANGE_INTEVAL;
+        if ((fabs(value - param->value) >= TEMPERATURE_TAG_PUB_VALUE_CHANGE) || (param->next_pub < bc_scheduler_get_spin_tick())) {
+            bc_radio_pub_temperature(param->channel, &value);
         }
+        vv_display_push_new_value(VV_DATA_TYPE_LOCAL_TEMPERATURE, value);
     }
 }
 

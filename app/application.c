@@ -3,10 +3,7 @@
 #include "sensors.h"
 #include "vv_radio_thermostat.h"
 #include "vv_display.h"
-#include "vv_thermostat.h"
 #include "vv_blind_controll.h"
-
-#define BATTERY_UPDATE_INTERVAL (60 * 60 * 1000)
 
 bc_led_t led;
 bool led_state = false;
@@ -17,10 +14,6 @@ static bc_module_relay_t relay_0_0;
 static bc_module_relay_t relay_0_1;
 
 static void radio_event_handler(bc_radio_event_t event, void *event_param);
-
-static void _radio_pub_state(uint8_t type, bool state);
-
-static void battery_event_handler(bc_module_battery_event_t event, void *event_param);
 
 void button_event_handler(bc_button_t *self, bc_button_event_t event, void *event_param);
 
@@ -66,12 +59,6 @@ void application_init(void) {
 
     //----------------------------
 
-    bc_module_battery_init(BC_MODULE_BATTERY_FORMAT_STANDARD);
-    bc_module_battery_set_event_handler(battery_event_handler, NULL);
-    bc_module_battery_set_update_interval(BATTERY_UPDATE_INTERVAL);
-
-    //----------------------------
-
     bc_module_relay_init(&relay_0_0, BC_MODULE_RELAY_I2C_ADDRESS_DEFAULT);
     bc_module_relay_init(&relay_0_1, BC_MODULE_RELAY_I2C_ADDRESS_ALTERNATE);
 
@@ -87,8 +74,7 @@ void application_init(void) {
     bc_module_encoder_set_event_handler(encoder_event_handler, NULL);
 
     vv_radio_listening_init();
-    vv_thermostat_init();
-    vv_display_init(&vv_thermostat);
+    vv_display_init();
     vv_blind_init();
 }
 
@@ -112,7 +98,6 @@ void lcd_button_event_handler(bc_button_t *self, bc_button_event_t event, void *
     (void) event_param;
 
     if (event == BC_BUTTON_EVENT_HOLD) {
-        vv_thermostat_set_local_controll(&vv_thermostat, !vv_thermostat_is_local_controll(&vv_thermostat));
     } else if (event == BC_BUTTON_EVENT_CLICK) {
         if (self->_channel.virtual_channel == BC_MODULE_LCD_BUTTON_LEFT) {
             vv_display_prev_page();
@@ -144,19 +129,6 @@ static void radio_event_handler(bc_radio_event_t event, void *event_param) {
 
 void bc_radio_pub_on_buffer(uint64_t *peer_device_address, uint8_t *buffer, size_t length) {
     switch (buffer[0]) {
-
-        case RADIO_RELAY_0_SET:
-        case RADIO_RELAY_1_SET: {
-            if (length != (1 + sizeof(uint64_t) + 1)) {
-                return;
-            }
-            bc_module_relay_set_state(buffer[0] == RADIO_RELAY_0_SET ? &relay_0_0 : &relay_0_1,
-                                      buffer[sizeof(uint64_t) + 1]);
-            vv_thermostat_set_actual_state(&vv_thermostat, buffer[sizeof(uint64_t) + 1]);
-            _radio_pub_state(buffer[0] == RADIO_RELAY_0_SET ? RADIO_RELAY_0 : RADIO_RELAY_1,
-                             buffer[sizeof(uint64_t) + 1]);
-            break;
-        }
         case VV_RADIO_STRING_STRING: {
             struct vv_radio_string_string_packet packet;
             if(vv_radio_parse_incoming_string_buffer(length, buffer, &packet)) {
@@ -172,33 +144,11 @@ void bc_radio_pub_on_buffer(uint64_t *peer_device_address, uint8_t *buffer, size
     }
 }
 
-static void _radio_pub_state(uint8_t type, bool state) {
-    uint8_t buffer[2];
-    buffer[0] = type;
-    buffer[1] = state;
-    bc_radio_pub_buffer(buffer, sizeof(buffer));
-}
-
-
-void battery_event_handler(bc_module_battery_event_t event, void *event_param) {
-    (void) event;
-    (void) event_param;
-
-    float voltage;
-
-    if (bc_module_battery_get_voltage(&voltage)) {
-        bc_radio_pub_battery(&voltage);
-    }
-}
-
 void encoder_event_handler(bc_module_encoder_event_t event, void *event_param) {
     (void) event_param;
 
     if (event == BC_MODULE_ENCODER_EVENT_ROTATION) {
-        float new_reference_value =
-                *vv_thermostat_get_reference_value(&vv_thermostat) + bc_module_encoder_get_increment() / 10.0;
-        vv_thermostat_set_reference_value(&vv_thermostat, &new_reference_value);
-        vv_display_render();
+        //bc_module_encoder_get_increment()
     } else if(event == BC_MODULE_ENCODER_EVENT_CLICK) {
         bc_scheduler_plan_relative(main_button_clicked_detector.task_id, 10);
     }
