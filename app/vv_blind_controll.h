@@ -1,6 +1,8 @@
 #ifndef VV_BLIND_CONTROLL_H
 #define VV_BLIND_CONTROLL_H
 
+static const bc_gpio_channel_t BLIND_POWER_RELAY_GPIO = BC_GPIO_P8;
+static const int BLIND_STOP_TIMEOUT = 30000;
 struct {
     bc_scheduler_task_id_t task;
     enum {
