@@ -128,11 +128,11 @@ void _draw_controller(vv_display_page_t *page) {
 
 
 void vv_display_blink_red() {
-    bc_led_pulse(&vv_display.red_led, 1000);
+    bc_led_pulse(&vv_display.red_led, 5000);
 }
 
 void vv_display_blink_green() {
-    bc_led_pulse(&vv_display.green_led, 1000);
+    bc_led_pulse(&vv_display.green_led, 5000);
 }
 
 void vv_display_init() {
