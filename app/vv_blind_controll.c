@@ -74,7 +74,9 @@ static void _vv_blind_controller_task() {
 
 static void _vv_blind_send_message(char *how) {
     struct vv_radio_string_string_packet message;
-    strncpy(message.key, "move", 4);
-    strncpy(message.value, how, 4);
+    memset(message.key, 0, VV_RADIO_STRING_KEY_SIZE);
+    memset(message.value, 0, VV_RADIO_STRING_VALUE_SIZE);
+    strcpy(message.key, "move");
+    strcpy(message.value, how);
     vv_radio_send_string(&message);
 }
