@@ -7,14 +7,14 @@ void sensors_init_all()
 	static temperature_tag_t temperature_tag_0_0;
 	temperature_tag_init(BC_I2C_I2C0, BC_TAG_TEMPERATURE_I2C_ADDRESS_DEFAULT, &temperature_tag_0_0);
 
-	static temperature_tag_t temperature_tag_0_1;
-	temperature_tag_init(BC_I2C_I2C0, BC_TAG_TEMPERATURE_I2C_ADDRESS_ALTERNATE, &temperature_tag_0_1);
-
-	static temperature_tag_t temperature_tag_1_0;
-	temperature_tag_init(BC_I2C_I2C1, BC_TAG_TEMPERATURE_I2C_ADDRESS_DEFAULT, &temperature_tag_1_0);
-
-	static temperature_tag_t temperature_tag_1_1;
-	temperature_tag_init(BC_I2C_I2C1, BC_TAG_TEMPERATURE_I2C_ADDRESS_ALTERNATE, &temperature_tag_1_1);
+//	static temperature_tag_t temperature_tag_0_1;
+//	temperature_tag_init(BC_I2C_I2C0, BC_TAG_TEMPERATURE_I2C_ADDRESS_ALTERNATE, &temperature_tag_0_1);
+//
+//	static temperature_tag_t temperature_tag_1_0;
+//	temperature_tag_init(BC_I2C_I2C1, BC_TAG_TEMPERATURE_I2C_ADDRESS_DEFAULT, &temperature_tag_1_0);
+//
+//	static temperature_tag_t temperature_tag_1_1;
+//	temperature_tag_init(BC_I2C_I2C1, BC_TAG_TEMPERATURE_I2C_ADDRESS_ALTERNATE, &temperature_tag_1_1);
 
 	//----------------------------
 
