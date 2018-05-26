@@ -38,7 +38,7 @@ void application_init(void) {
 
     //----------------------------
 
-    bc_module_lcd_init(&_bc_module_lcd_framebuffer);
+    bc_module_lcd_init();
 
     static bc_button_t lcd_left;
     bc_button_init_virtual(&lcd_left, BC_MODULE_LCD_BUTTON_LEFT, bc_module_lcd_get_button_driver(), false);

@@ -36,7 +36,7 @@ void process_incoming_packet(struct vv_radio_string_string_packet *packet) {
 
 void vv_radio_listening_init() {
 #if !VV_RADIO_THERMOSTAT_POWER_SAVE
-    bc_radio_listen();
+    bc_radio_listen((uint64_t)100);
 #endif
     _vv_radio_listen_task_id = bc_scheduler_register(_vv_radio_listen_task, NULL, 0);
     _vv_radio_sleep_task_id = bc_scheduler_register(_vv_radio_sleep_task, NULL, BC_TICK_INFINITY);

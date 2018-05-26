@@ -24,6 +24,8 @@
 #define CO2_PUB_VALUE_CHANGE 50.0f
 #define CO2_UPDATE_INTERVAL (15 * 1000)
 
+#define VOC_TAG_UPDATE_INTERVAL (1 * 1000)
+
 typedef struct
 {
     uint8_t channel;
@@ -73,5 +75,7 @@ void barometer_tag_init(bc_i2c_channel_t i2c_channel, barometer_tag_t *tag);
 void co2_module_init(void);
 
 void pir_module_init(void);
+
+void voc_tag_init(void);
 
 #endif

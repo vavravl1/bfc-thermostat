@@ -180,7 +180,7 @@ void vv_display_render() {
         return;
     }
 
-    bc_module_core_pll_enable();
+    bc_system_pll_enable();
     bc_module_lcd_clear();
 
     if (vv_display.pages[vv_display.actual_page_index].data != NULL) {
@@ -189,7 +189,7 @@ void vv_display_render() {
         _draw_controller(&vv_display.pages[vv_display.actual_page_index]);
     }
 
-    bc_module_core_pll_disable();
+    bc_system_pll_disable();
     bc_module_lcd_update();
 }
 
