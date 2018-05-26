@@ -27,7 +27,7 @@ struct vv_display_data_t {
 typedef struct vv_display_data_t vv_display_data_t;
 
 struct vv_display_controller_t {
-    struct vv_thermostat_self* thermostat;
+    uint8_t selected_watering_section;
 };
 typedef struct vv_display_controller_t vv_display_controller_t;
 

@@ -148,7 +148,8 @@ void encoder_event_handler(bc_module_encoder_event_t event, void *event_param) {
     (void) event_param;
 
     if (event == BC_MODULE_ENCODER_EVENT_ROTATION) {
-        //bc_module_encoder_get_increment()
+        vv_display.controllers[0].selected_watering_section =
+                (uint8_t) (((vv_display.controllers[0].selected_watering_section + 1) % 3) + 1);
     } else if(event == BC_MODULE_ENCODER_EVENT_CLICK) {
         bc_scheduler_plan_relative(main_button_clicked_detector.task_id, 10);
     }
@@ -158,7 +159,16 @@ void main_button_clicked_task() {
     if(main_button_clicked_detector.lcd_button_clicked) {
         main_button_clicked_detector.lcd_button_clicked = false;
     } else {
-        vv_blind_move();
+        if(vv_display.actual_page_index == 7) { // Watering controller page
+            struct vv_radio_string_string_packet message;
+            memset(message.key, 0, VV_RADIO_STRING_KEY_SIZE);
+            memset(message.value, 0, VV_RADIO_STRING_VALUE_SIZE);
+            strcpy(message.key, "watering");
+            sprintf(message.value, "s%d", vv_display.controllers[0].selected_watering_section);
+            vv_radio_send_string(&message);
+        } else {
+            vv_blind_move();
+        }
     }
 }
 

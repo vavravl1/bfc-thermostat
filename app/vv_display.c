@@ -113,17 +113,11 @@ void _draw_data(vv_display_page_t *page) {
 
 void _draw_controller(vv_display_page_t *page) {
     _draw_header(page);
-    float actual_temperature = 10;
-    _draw_value(
-            page->format,
-            &actual_temperature,
-            45
-    );
-    _draw_value(
-            page->format,
-            &actual_temperature,
-            80
-    );
+
+    char str[32];
+    bc_module_lcd_set_font(&bc_font_ubuntu_33);
+    snprintf(str, sizeof(str), page->format, page->controller->selected_watering_section);
+    bc_module_lcd_draw_string(_left_intend_to_center(str, 14), 50, str, true);
 }
 
 
@@ -146,11 +140,12 @@ void vv_display_init() {
     _vv_display_init_single_data(5, VV_DATA_TYPE_CO2, "CO2 [ppm]", " Bedroom  ", "%.0f");
     _vv_display_init_single_data(6, VV_DATA_TYPE_LOCAL_TEMPERATURE, "Temperature [\xb0]", "Here", "%.2f");
 
-    vv_display.pages[7].name = "Heating [\xb0]";
-    vv_display.pages[7].location = "Home  ";
-    vv_display.pages[7].format = "%.2f";
+    vv_display.pages[7].name = "Watering";
+    vv_display.pages[7].location = "Garden  ";
+    vv_display.pages[7].format = "%d";
     vv_display.pages[7].data = NULL;
     vv_display.pages[7].controller = &vv_display.controllers[0];
+    vv_display.controllers[0].selected_watering_section = 1;
 
     bc_led_init_virtual(&vv_display.green_led, BC_MODULE_LCD_LED_GREEN, bc_module_lcd_get_led_driver(), 1);
     bc_led_init_virtual(&vv_display.red_led, BC_MODULE_LCD_LED_RED, bc_module_lcd_get_led_driver(), 1);
